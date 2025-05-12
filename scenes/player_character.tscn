@@ -1,8 +1,9 @@
-[gd_scene load_steps=6 format=3 uid="uid://06qiyuoewaqf"]
+[gd_scene load_steps=8 format=3 uid="uid://06qiyuoewaqf"]
 
 [ext_resource type="Script" path="res://scripts/character_body_2d.gd" id="1_yfngl"]
 [ext_resource type="Script" path="res://scripts/player_input_direction.gd" id="2_uc2qu"]
 [ext_resource type="Script" path="res://scripts/player_jump_input.gd" id="3_2n0x4"]
+[ext_resource type="Script" path="res://scripts/bouyancy_area.gd" id="4_8k45x"]
 
 [sub_resource type="CapsuleShape2D" id="CapsuleShape2D_r1pwq"]
 
@@ -10,7 +11,11 @@
 radius = 10.0
 height = 30.0
 
+[sub_resource type="CapsuleShape2D" id="CapsuleShape2D_42qaj"]
+
 [node name="CharacterBody2D" type="CharacterBody2D" node_paths=PackedStringArray("lock_acceleration_timer")]
+collision_layer = 4
+collision_mask = 0
 script = ExtResource("1_yfngl")
 lock_acceleration_timer = NodePath("Timer")
 
@@ -34,3 +39,16 @@ character_body = NodePath("..")
 script = ExtResource("3_2n0x4")
 character_body = NodePath("..")
 jump_input = "jump"
+
+[node name="Area2D" type="Area2D" parent="." node_paths=PackedStringArray("character_body")]
+collision_layer = 0
+collision_mask = 8
+script = ExtResource("4_8k45x")
+character_body = NodePath("..")
+jump_input = "jump"
+swim_up_force = 2000.0
+up_force = 400.0
+friction = 5.0
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Area2D"]
+shape = SubResource("CapsuleShape2D_42qaj")

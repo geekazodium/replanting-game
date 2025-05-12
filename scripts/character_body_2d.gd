@@ -16,6 +16,7 @@ var ground_timer: float;
 var left_direction: Vector2: get = get_left;
 var input_direction: Vector2 = Vector2.ZERO;
 var instant_acceleration: Vector2 = Vector2.ZERO;
+var acceleration: Vector2 = Vector2.ZERO;
 
 signal jumped();
 
@@ -27,6 +28,9 @@ func jump() -> void:
 
 func add_instant_acceleration(acceleration: Vector2) -> void:
 	self.instant_acceleration += acceleration;
+
+func add_acceleration(accel: Vector2) -> void:
+	self.acceleration += accel;
 
 func _physics_process(delta: float) -> void:
 	if self.jump_timer > 0.:
@@ -55,6 +59,7 @@ func _physics_process(delta: float) -> void:
 	
 	delta_v += self.get_gravity();
 	delta_v += -temp_velocity * self.air_friction;
+	delta_v += self.acceleration;
 
 	if (self.jump_timer > 0.) && (self.ground_timer > 0.):
 		self.apply_jump(temp_velocity);
@@ -62,6 +67,7 @@ func _physics_process(delta: float) -> void:
 	self.set_velocity(temp_velocity + delta_v * delta + self.instant_acceleration);
 	self.move_and_slide();
 	self.instant_acceleration = Vector2.ZERO;
+	self.acceleration = Vector2.ZERO;
 
 func get_walk_force(temp_velocity: Vector2, x_input: float, delta: float) -> Vector2:
 	var delta_v: Vector2 = Vector2.ZERO;
