@@ -1,4 +1,5 @@
-use godot::{builtin::Vector2i, global::randi_range};
+use godot::builtin::Vector2i;
+use godot::global::randi_range;
 
 use crate::cellular_automata_layer::CellDataWrapper;
 
@@ -6,8 +7,9 @@ use crate::cellular_automata_layer::CellDataWrapper;
 pub enum CellRules{
     Empty,
     ForceEmpty,
-    StaticCell,
+    StaticCell{hydration: Hydration},
     Water{water_cell:WaterCell},
+    Moss{hydration: Hydration, moss: MossSpread},
 }
 
 impl CellRules{
@@ -22,8 +24,9 @@ impl CellRules{
         match self{
             Self::ForceEmpty=>0,
             Self::Empty=>1,
-            Self::StaticCell=>2,
+            Self::StaticCell{hydration} =>2,
             Self::Water{water_cell}=>3,
+            Self::Moss { hydration, moss } => 4,
         }
     }
     pub fn can_set(&self)-> bool{
@@ -36,26 +39,38 @@ impl CellRules{
         match self{
             Self::ForceEmpty=>panic!("can't set forced empty cell"),
             Self::Empty=>Vector2i::new(0, 0),
-            Self::StaticCell=>Vector2i::new(1, 0),
-            Self::Water{water_cell: _}=>Vector2i::new(2, 0)
+            Self::StaticCell{hydration: _}=>Vector2i::new(1, 0),
+            Self::Water{water_cell: _}=>Vector2i::new(2, 0),
+            Self::Moss { hydration:_, moss: _}=>Vector2i { x: 3, y: 0 }
         }
     }
     pub fn from_atlas_coords(coord: Vector2i) -> Self{
         match coord.x {
             0 =>Self::Empty,
-            1 =>Self::StaticCell,
+            1 =>Self::StaticCell{hydration: Hydration { hydration: 0 }},
             2 =>Self::Water{water_cell: WaterCell{}},
+            3 =>Self::Moss { hydration: Hydration { hydration: 2 }, moss: MossSpread { energy: 8 } },
             _default=> Self::ForceEmpty
+        }
+    }
+    pub fn is_solid(&self) -> bool{
+        match self{
+            Self::StaticCell { hydration: _} => true,
+            Self::Moss { hydration: _, moss: _} => true,
+            _default => false
         }
     }
     pub fn update(&mut self, cell_data: &mut CellDataWrapper, position: Vector2i){
         match self{
-            Self::Water{water_cell}=>{water_cell.update(cell_data, position)}
+            Self::StaticCell { hydration }=>{hydration.update(cell_data, position)}
+            Self::Water{water_cell}=>{water_cell.update(cell_data, position)},
+            Self::Moss { hydration, moss } => {hydration.update(cell_data, position);moss.update(cell_data, position);}
             _default => {}
         }
     }
     pub fn get_hydration(&self) -> u8{
         match self {
+            Self::Water { water_cell: _ } => 16,
             _default => 0
         }
     }
@@ -134,3 +149,44 @@ impl PartialEq for Hydration{
         false
     }
 }
+
+#[derive(Eq, Clone, Copy, Debug)]
+pub struct MossSpread{
+    energy: u8
+}
+
+impl CellUpdate for MossSpread{
+    fn update(&mut self, data: &mut CellDataWrapper, position: Vector2i) {
+        let mut offsets = vec![
+            Vector2i::UP,
+            Vector2i::DOWN,
+            Vector2i::LEFT,
+            Vector2i::RIGHT
+        ];
+        for i in (0..offsets.len()).rev(){
+            offsets.swap(i, randi_range(i as i64, 0) as usize);
+        }
+        
+        if (randi_range(0, 200) as u8) < self.energy{
+            self.energy = 0;
+            for offset in offsets{
+                if data.get(position - offset).is_solid(){
+                    data.set(position - offset, CellRules::Moss { hydration: Hydration { hydration: 2 }, moss: MossSpread { energy: 2 } });
+                    return;
+                }
+            }
+        }else{
+            self.energy += 1;
+        }
+    }
+}
+
+impl PartialEq for MossSpread{
+    fn eq(&self, _other: &Self) -> bool {
+        true
+    }
+    fn ne(&self, _other: &Self) -> bool {
+        false
+    }
+}
+
