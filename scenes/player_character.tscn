@@ -1,0 +1,36 @@
+[gd_scene load_steps=6 format=3 uid="uid://06qiyuoewaqf"]
+
+[ext_resource type="Script" path="res://scripts/character_body_2d.gd" id="1_yfngl"]
+[ext_resource type="Script" path="res://scripts/player_input_direction.gd" id="2_uc2qu"]
+[ext_resource type="Script" path="res://scripts/player_jump_input.gd" id="3_2n0x4"]
+
+[sub_resource type="CapsuleShape2D" id="CapsuleShape2D_r1pwq"]
+
+[sub_resource type="CapsuleMesh" id="CapsuleMesh_8duyh"]
+radius = 10.0
+height = 30.0
+
+[node name="CharacterBody2D" type="CharacterBody2D" node_paths=PackedStringArray("lock_acceleration_timer")]
+script = ExtResource("1_yfngl")
+lock_acceleration_timer = NodePath("Timer")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+shape = SubResource("CapsuleShape2D_r1pwq")
+
+[node name="Timer" type="Timer" parent="."]
+
+[node name="MeshInstance2D" type="MeshInstance2D" parent="."]
+mesh = SubResource("CapsuleMesh_8duyh")
+
+[node name="PlayerInputDirection" type="Node" parent="." node_paths=PackedStringArray("character_body")]
+script = ExtResource("2_uc2qu")
+move_left_action = "move_left"
+move_right_action = "move_right"
+move_up_action = "move_up"
+move_down_action = "move_down"
+character_body = NodePath("..")
+
+[node name="PlayerJumpInput" type="Node" parent="." node_paths=PackedStringArray("character_body")]
+script = ExtResource("3_2n0x4")
+character_body = NodePath("..")
+jump_input = "jump"
