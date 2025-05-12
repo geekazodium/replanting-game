@@ -37,46 +37,49 @@ impl ITileMapLayer for CellularAutomataLayer{
 
 impl CellularAutomataLayer{
     fn update_tiles(&mut self){
-        let rect = self.base().get_used_rect();
-        let pos = rect.position;
-        let range = rect.size;
+        let (range_x, range_y) = self.cell_data.get_range();
+        let min_position = self.cell_data.get_min_vec2i();
 
-        for y in (0..range.y).rev(){
-            let iter = 0..range.x;
+        for y in (0..range_y).rev(){
+            let iter = 0..range_x;
             if randf_range(0., 2.) > 1.0{
                 for x in iter.rev(){
-                    self.update_cell(x,y);
+                    self.update_cell(x+min_position.x, y + min_position.y);
                 }
             }else{
                 for x in iter{
-                    self.update_cell(x, y);
+                    self.update_cell(x+min_position.x, y + min_position.y);
                 }
             }
         }
 
-        for y in 0..range.y{
-            for x in 0..range.x{
-                let tile_pos = Vector2i::new(x, y)+pos;
-                let cell = self.cell_data.get(Vector2i { x, y });
+        for y in 0..range_y{
+            for x in 0..range_x{
+                let tile_pos = Vector2i::new(x, y) + min_position;
+                let cell = self.cell_data.get(tile_pos);
                 if *cell != CellRules::ForceEmpty{
                     let atlas_coords = cell.to_atlas_coords();
-                    if randf_range(0., 1.) < 0.1f64{
-                        self.base_mut().set_cell_ex(tile_pos - pos).atlas_coords(atlas_coords).source_id(0).done();
+                    if randf_range(0., 1.) < 0.01f64{
+                        self.set_cell(tile_pos, atlas_coords, 0);
                     }
                 }
             }
         }
     }
 
+    fn set_cell(&mut self, pos: Vector2i, atlas_coords: Vector2i, id: i32){
+        self.base_mut().set_cell_ex(pos).atlas_coords(atlas_coords).source_id(id).done();
+    }
+
     fn load_tiles_to_wrapper(&mut self){
         let rect = self.base().get_used_rect();
-        let pos = rect.position;
+        let rect_position = rect.position;
         let range = rect.size;
     
         let mut cells_data_vec = vec![];
         for y in 0..range.y{
             for x in 0..range.x{
-                let tile_pos = Vector2i::new(x, y)+pos;
+                let tile_pos = Vector2i::new(x, y)+rect_position;
                 cells_data_vec.push(CellRules::from_tile(self.base().get_cell_atlas_coords(tile_pos), self.base().get_cell_source_id(tile_pos)));
             }
         }
@@ -142,5 +145,11 @@ impl CellDataWrapper{
     }
     fn map_global_pos_to_grid(&self, position: Vector2i) -> Vector2i{
         position - Vector2i{ x:self.min_x, y:self.min_y }
+    }
+    fn get_range(&self) -> (i32, i32){
+        (self.width, self.height)
+    }
+    fn get_min_vec2i(&self) -> Vector2i{
+        return Vector2i::new(self.min_x, self.min_y);
     }
 }
