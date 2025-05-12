@@ -1,11 +1,15 @@
 use core::f64;
+use std::collections::HashSet;
 
+use godot::builtin::Rect2;
 use godot::builtin::Rect2i;
 use godot::builtin::Vector2i;
+use godot::classes::Camera2D;
 use godot::classes::ITileMapLayer;
 use godot::classes::TileMapLayer;
 use godot::global::randf_range;
 use godot::obj::Base;
+use godot::obj::Gd;
 use godot::obj::WithBaseField;
 use godot::prelude::godot_api;
 use godot::prelude::GodotClass;
@@ -16,7 +20,10 @@ use crate::cell_rules::CellRules;
 #[class(base = TileMapLayer)]
 struct CellularAutomataLayer{
     base: Base<TileMapLayer>,
-    cell_data: CellDataWrapper
+    cell_data: CellDataWrapper,
+    #[export]
+    camera: Option<Gd<Camera2D>>,
+    last_visible_area: Rect2i
 }
 
 #[godot_api]
@@ -24,7 +31,9 @@ impl ITileMapLayer for CellularAutomataLayer{
     fn init(base: Base<TileMapLayer>) -> Self{
         Self{
             base,
-            cell_data: CellDataWrapper::new(vec![],  Rect2i::new(Vector2i::new(0, 0), Vector2i::new(0, 0)))
+            cell_data: CellDataWrapper::new(vec![],  Rect2i::new(Vector2i::new(0, 0), Vector2i::new(0, 0))),
+            camera:None,
+            last_visible_area: Rect2i::new(Vector2i::ZERO, Vector2i::ZERO)
         }
     }
     fn ready(&mut self){
@@ -53,21 +62,28 @@ impl CellularAutomataLayer{
             }
         }
 
-        for y in 0..range_y{
-            for x in 0..range_x{
-                let tile_pos = Vector2i::new(x, y) + min_position;
+        let vis_area = self.get_visible_tile_area();
+        for y in 0..vis_area.size.y{
+            for x in 0..vis_area.size.x{
+                let tile_pos = Vector2i::new(x, y) + vis_area.position;
+                if !self.cell_data.is_position_hash_updated(tile_pos) && self.last_visible_area.contains_point(tile_pos){
+                    continue;
+                }
                 let cell = self.cell_data.get(tile_pos);
                 if *cell != CellRules::ForceEmpty{
                     let atlas_coords = cell.to_atlas_coords();
-                    if randf_range(0., 1.) < 0.01f64{
-                        self.set_cell(tile_pos, atlas_coords, 0);
-                    }
+                    self.set_cell(tile_pos, atlas_coords, 0);
                 }
             }
         }
+        self.last_visible_area = vis_area;
+        self.cell_data.reset_chunks_updated();
     }
 
     fn set_cell(&mut self, pos: Vector2i, atlas_coords: Vector2i, id: i32){
+        if self.base().get_cell_atlas_coords(pos) == atlas_coords && self.base().get_cell_source_id(pos) == id{
+            return;
+        }
         self.base_mut().set_cell_ex(pos).atlas_coords(atlas_coords).source_id(id).done();
     }
 
@@ -91,13 +107,30 @@ impl CellularAutomataLayer{
         let tile_pos = Vector2i::new(x, y);
         cell_rules.update(&mut self.cell_data, tile_pos);
     }
+    
+    fn get_visible_tile_area(&self) -> Rect2i{        
+        let camera = self.camera.as_ref().expect("no camera set");
+        let camera_rect = camera.get_viewport_rect();
+        let mut position = camera.get_global_position();
+        let mut size = camera_rect.size;
+        size /= camera.get_zoom();
+        position -= size / 2.;
+        
+        let tile_size = self.base().get_tile_set().unwrap().get_tile_size();
+        let mut rect = [position.x as i32, position.y as i32, size.x as i32, size.y as i32];
+        for i in 0..4{
+            //assume tiles are square
+            rect[i]/=tile_size.x;
+        }
+        return Rect2i::new(Vector2i::new(rect[0] - 1, rect[1] - 1), Vector2i::new(rect[2] + 2, rect[3] + 2));
+    }
 }
 
 pub const TILE_TYPE_DATA_LAYER: &str = "tile_type";
-pub const TILE_SIZE: f32 = 64.;
 
 pub struct CellDataWrapper{
     data: Vec<CellRules>,
+    updated_chunks: HashSet<i32>,
     width: i32,
     height: i32,
     min_x: i32,
@@ -108,6 +141,7 @@ impl CellDataWrapper{
     fn new(data: Vec<CellRules>, rect: Rect2i) -> Self{
         Self{
             data,
+            updated_chunks: HashSet::new(),
             width: rect.size.x,
             height: rect.size.y,
             min_x: rect.position.x,
@@ -135,6 +169,7 @@ impl CellDataWrapper{
             return;
         }
 
+        self.set_position_hash_updated(position);
         let index = self.map_vec_to_index(pos);
         self.data[index] = cell;
     }
@@ -151,5 +186,17 @@ impl CellDataWrapper{
     }
     fn get_min_vec2i(&self) -> Vector2i{
         return Vector2i::new(self.min_x, self.min_y);
+    }
+    fn set_position_hash_updated(&mut self, pos: Vector2i){
+        self.updated_chunks.insert(Self::get_position_hash(pos));
+    }
+    fn reset_chunks_updated(&mut self){
+        self.updated_chunks.clear();
+    }
+    fn is_position_hash_updated(&self, pos: Vector2i) -> bool{
+        self.updated_chunks.contains(&Self::get_position_hash(pos))
+    }
+    fn get_position_hash(pos: Vector2i) -> i32{
+        pos.x ^ !(pos.y<<16)
     }
 }
