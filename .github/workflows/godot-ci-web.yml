@@ -104,6 +104,7 @@ jobs:
         run: |
           mkdir -v -p ~/.local/share/godot/export_templates/
           mv /root/.local/share/godot/export_templates/${GODOT_VERSION}.stable ~/.local/share/godot/export_templates/${GODOT_VERSION}.stable
+          sudo apt-get install curl
       - name: Compile Rust Library
         run: |
           curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
