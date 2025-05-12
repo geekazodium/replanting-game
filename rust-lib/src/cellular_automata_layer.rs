@@ -1,7 +1,6 @@
 use core::f64;
 use std::collections::HashSet;
 
-use godot::builtin::Rect2;
 use godot::builtin::Rect2i;
 use godot::builtin::Vector2i;
 use godot::classes::Camera2D;
@@ -103,7 +102,7 @@ impl CellularAutomataLayer{
     }
     
     fn update_cell(&mut self, x: i32, y: i32) {
-        let cell_rules = self.cell_data.get(Vector2i::new(x, y)).clone();
+        let mut cell_rules = self.cell_data.get(Vector2i::new(x, y)).clone();
         let tile_pos = Vector2i::new(x, y);
         cell_rules.update(&mut self.cell_data, tile_pos);
     }
@@ -169,7 +168,9 @@ impl CellDataWrapper{
             return;
         }
 
-        self.set_position_hash_updated(position);
+        if cell != *self.get(position){
+            self.set_position_hash_updated(position);
+        }
         let index = self.map_vec_to_index(pos);
         self.data[index] = cell;
     }
@@ -197,6 +198,6 @@ impl CellDataWrapper{
         self.updated_chunks.contains(&Self::get_position_hash(pos))
     }
     fn get_position_hash(pos: Vector2i) -> i32{
-        pos.x ^ !(pos.y<<16)
+        pos.x ^ (pos.y<<16)
     }
 }

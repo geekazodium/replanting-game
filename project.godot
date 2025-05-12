@@ -58,6 +58,7 @@ jump={
 
 [physics]
 
+common/physics_ticks_per_second=20
 common/physics_interpolation=true
 
 [rendering]
