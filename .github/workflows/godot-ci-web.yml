@@ -106,6 +106,7 @@ jobs:
           mv /root/.local/share/godot/export_templates/${GODOT_VERSION}.stable ~/.local/share/godot/export_templates/${GODOT_VERSION}.stable
       - name: Compile Rust Library
         run: |
+          curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
           cd rust-lib
           cargo build
       - name: Web Build
