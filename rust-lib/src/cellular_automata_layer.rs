@@ -80,7 +80,7 @@ impl CellularAutomataLayer{
     }
 
     fn set_cell(&mut self, pos: Vector2i, atlas_coords: Vector2i, id: i32){
-        if self.base().get_cell_atlas_coords(pos) == atlas_coords && self.base().get_cell_source_id(pos) == id{
+        if self.base().get_cell_atlas_coords(pos) == atlas_coords{
             return;
         }
         self.base_mut().set_cell_ex(pos).atlas_coords(atlas_coords).source_id(id).done();
