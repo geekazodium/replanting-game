@@ -3,7 +3,7 @@ use godot::global::randi_range;
 
 use crate::cellular_automata_layer::CellDataWrapper;
 
-#[derive(PartialEq, Eq, Clone, Debug)]
+#[derive(PartialEq, Eq, Clone, Debug, Copy)]
 pub enum CellRules{
     Empty,
     ForceEmpty,
@@ -48,7 +48,7 @@ impl CellRules{
         match coord.x {
             0 =>Self::Empty,
             1 =>Self::StaticCell{hydration: Hydration { hydration: 0 }},
-            2 =>Self::Water{water_cell: WaterCell{}},
+            2 =>Self::Water{water_cell: WaterCell{pos_x_bias: randi_range(0,1) == 1}},
             3 =>Self::Moss { hydration: Hydration { hydration: 2 }, moss: MossSpread { energy: 8 } },
             _default=> Self::ForceEmpty
         }
@@ -91,14 +91,12 @@ trait CellUpdate {
 
 #[derive(Eq, Clone, Copy, Debug)]
 pub struct WaterCell{
+    pos_x_bias: bool
 }
 
 impl CellUpdate for WaterCell{
     fn update(&mut self, data: &mut CellDataWrapper, position: Vector2i) {
-        let mut dir_bias = randi_range(0,1) as i32;
-        if dir_bias == 0{
-            dir_bias = -1;
-        }
+        let dir_bias = if self.pos_x_bias {1} else {-1};
         let offsets = vec![
             Vector2i::UP,
             Vector2i::UP + Vector2i::LEFT * dir_bias,
@@ -108,6 +106,9 @@ impl CellUpdate for WaterCell{
         ];
         for offset in offsets{
             if *data.get(position - offset) == CellRules::Empty{
+                if dir_bias * offset.x == 1{
+                    self.pos_x_bias ^= true;
+                }
                 data.set(position - offset, CellRules::Water { water_cell: *self });
                 data.set(position, CellRules::Empty);
                 return;
