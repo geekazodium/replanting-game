@@ -1,15 +1,18 @@
 use godot::builtin::Vector2i;
 use godot::global::randi_range;
 
+use crate::cell_rules::cell_update::CellUpdate;
 use crate::cellular_automata_layer::CellDataWrapper;
+
+pub const MAX_HYDRATION: u8 = 32;
 
 #[derive(Clone, Debug, Copy)]
 pub enum CellRules{
     Empty,
     ForceEmpty,
-    StaticCell{hydration: Hydration},
-    Water{water_cell:WaterCell},
-    Moss{hydration: Hydration, moss: MossSpread},
+    StaticCell{hydration: hydration::Hydration},
+    Water{water_cell:water_cell::WaterCell},
+    Moss{hydration: hydration::Hydration, moss: moss_spread::MossSpread},
 }
 
 impl CellRules{
@@ -47,9 +50,9 @@ impl CellRules{
     pub fn from_atlas_coords(coord: Vector2i) -> Self{
         match coord.x {
             0 =>Self::Empty,
-            1 =>Self::StaticCell{hydration: Hydration { hydration: 0 }},
-            2 =>Self::Water{water_cell: WaterCell{pos_x_bias: randi_range(0,1) == 1}},
-            3 =>Self::Moss { hydration: Hydration { hydration: 2 }, moss: MossSpread { energy: 8 } },
+            1 =>Self::StaticCell{hydration: hydration::Hydration { hydration: 0 }},
+            2 =>Self::Water{water_cell: water_cell::WaterCell{pos_x_bias: randi_range(0,1) == 1}},
+            3 =>Self::Moss { hydration: hydration::Hydration { hydration: 2 }, moss: moss_spread::MossSpread { energy: 8 } },
             _default=> Self::ForceEmpty
         }
     }
@@ -77,9 +80,9 @@ impl CellRules{
     }
     pub fn get_hydration(&self) -> u8{
         match self {
-            Self::Water { water_cell: _ } => 16,
+            Self::Water { water_cell: _ } => MAX_HYDRATION,
             Self::StaticCell { hydration } => hydration.hydration,
-            Self::Moss { hydration, moss: _ } => if hydration.hydration > 3 { hydration.hydration - 3}else{0},
+            Self::Moss { hydration, moss: _ } => if hydration.hydration > 2 { hydration.hydration - 2}else{0},
             _default => 0
         }
     }
@@ -94,98 +97,7 @@ impl PartialEq for CellRules{
     }
 }
 
-trait CellUpdate {
-    fn update(&mut self, data: &mut CellDataWrapper, position: Vector2i);
-}
-
-#[derive(Clone, Copy, Debug)]
-pub struct WaterCell{
-    pos_x_bias: bool
-}
-
-impl CellUpdate for WaterCell{
-    fn update(&mut self, data: &mut CellDataWrapper, position: Vector2i) {
-        let dir_bias = if self.pos_x_bias {1} else {-1};
-        let offsets = vec![
-            Vector2i::UP,
-            Vector2i::UP + Vector2i::LEFT * dir_bias,
-            Vector2i::UP + Vector2i::RIGHT * dir_bias,
-            Vector2i::LEFT * dir_bias,
-            Vector2i::RIGHT * dir_bias
-        ];
-        for offset in offsets{
-            if *data.get(position - offset) == CellRules::Empty{
-                if dir_bias * offset.x == 1{
-                    self.pos_x_bias ^= true;
-                }
-                data.set(position - offset, CellRules::Water { water_cell: *self });
-                data.set(position, CellRules::Empty);
-                return;
-            }
-        }
-    }
-}
-
-#[derive(Clone, Copy, Debug)]
-pub struct Hydration{
-    hydration: u8
-}
-
-impl CellUpdate for Hydration{
-    fn update(&mut self, data: &mut CellDataWrapper, position: Vector2i) {
-        let offsets = vec![
-            Vector2i::UP,
-            Vector2i::DOWN,
-            Vector2i::LEFT,
-            Vector2i::RIGHT
-        ];
-        let mut hydration_max: u8 = 0;
-        for offset in offsets{
-            hydration_max = hydration_max.max(data.get(position + offset).get_hydration());
-        }
-        if hydration_max > 0{
-            self.hydration = hydration_max - 1;
-        }else{
-            self.hydration = 0;
-        }
-    }
-}
-
-#[derive(Clone, Copy, Debug)]
-pub struct MossSpread{
-    energy: u8
-}
-
-impl CellUpdate for MossSpread{
-    fn update(&mut self, data: &mut CellDataWrapper, position: Vector2i) {
-        let mut offsets = vec![
-            Vector2i::UP,
-            Vector2i::DOWN,
-            Vector2i::LEFT,
-            Vector2i::RIGHT
-        ];
-        for i in (0..offsets.len()).rev(){
-            offsets.swap(i, randi_range(i as i64, 0) as usize);
-        }
-        
-        if (randi_range(2, 200) as u8) < self.energy{
-            self.energy = 0;
-            for offset in offsets{
-                if data.get(position - offset).is_solid(){
-                    data.set(position - offset, CellRules::Moss { hydration: Hydration { hydration: 2 }, moss: MossSpread { energy: 0 } });
-                    return;
-                }
-            }
-        }else{
-            if data.get(position).get_hydration() > 4{
-                self.energy += 1;
-            }else{
-                if self.energy >= 4{
-                    self.energy -= 4;
-                }else{
-                    self.energy = 0;
-                }
-            }
-        }
-    }
-}
+mod cell_update;
+mod water_cell;
+mod hydration;
+mod moss_spread;
