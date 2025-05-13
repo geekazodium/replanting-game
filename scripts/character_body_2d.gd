@@ -26,8 +26,8 @@ func set_input_direction(direction: Vector2) -> void:
 func jump() -> void:
 	self.jump_timer = self.leading_jump_buffer;
 
-func add_instant_acceleration(acceleration: Vector2) -> void:
-	self.instant_acceleration += acceleration;
+func add_instant_acceleration(accel: Vector2) -> void:
+	self.instant_acceleration += accel;
 
 func add_acceleration(accel: Vector2) -> void:
 	self.acceleration += accel;
