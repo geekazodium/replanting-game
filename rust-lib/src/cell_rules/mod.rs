@@ -3,7 +3,7 @@ use godot::global::randi_range;
 
 use crate::cellular_automata_layer::CellDataWrapper;
 
-#[derive(PartialEq, Eq, Clone, Debug, Copy)]
+#[derive(Clone, Debug, Copy)]
 pub enum CellRules{
     Empty,
     ForceEmpty,
@@ -85,11 +85,20 @@ impl CellRules{
     }
 }
 
+impl PartialEq for CellRules{
+    fn eq(&self, other: &Self) -> bool {
+        self.to_id() == other.to_id()
+    }
+    fn ne(&self, other: &Self) -> bool {
+        !self.eq(other)
+    }
+}
+
 trait CellUpdate {
     fn update(&mut self, data: &mut CellDataWrapper, position: Vector2i);
 }
 
-#[derive(Eq, Clone, Copy, Debug)]
+#[derive(Clone, Copy, Debug)]
 pub struct WaterCell{
     pos_x_bias: bool
 }
@@ -117,16 +126,7 @@ impl CellUpdate for WaterCell{
     }
 }
 
-impl PartialEq for WaterCell{
-    fn eq(&self, _other: &Self) -> bool {
-        true
-    }
-    fn ne(&self, _other: &Self) -> bool {
-        false
-    }
-}
-
-#[derive(Eq, Clone, Copy, Debug)]
+#[derive(Clone, Copy, Debug)]
 pub struct Hydration{
     hydration: u8
 }
@@ -151,16 +151,7 @@ impl CellUpdate for Hydration{
     }
 }
 
-impl PartialEq for Hydration{
-    fn eq(&self, _other: &Self) -> bool {
-        true
-    }
-    fn ne(&self, _other: &Self) -> bool {
-        false
-    }
-}
-
-#[derive(Eq, Clone, Copy, Debug)]
+#[derive(Clone, Copy, Debug)]
 pub struct MossSpread{
     energy: u8
 }
@@ -198,13 +189,3 @@ impl CellUpdate for MossSpread{
         }
     }
 }
-
-impl PartialEq for MossSpread{
-    fn eq(&self, _other: &Self) -> bool {
-        true
-    }
-    fn ne(&self, _other: &Self) -> bool {
-        false
-    }
-}
-
