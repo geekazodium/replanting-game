@@ -68,6 +68,7 @@ impl CellularAutomataLayer{
                 if !self.cell_data.is_position_hash_updated(tile_pos) && self.last_visible_area.contains_point(tile_pos){
                     continue;
                 }
+                self.cell_data.add_chunk_updating(tile_pos);
                 let cell = self.cell_data.get(tile_pos);
                 if *cell != CellRules::ForceEmpty{
                     let atlas_coords = cell.to_atlas_coords();
@@ -77,6 +78,7 @@ impl CellularAutomataLayer{
         }
         self.last_visible_area = vis_area;
         self.cell_data.reset_hashes_updated();
+        self.cell_data.update_chunks_updating();
     }
 
     fn set_cell(&mut self, pos: Vector2i, atlas_coords: Vector2i, id: i32){
@@ -95,13 +97,18 @@ impl CellularAutomataLayer{
         for y in 0..range.y{
             for x in 0..range.x{
                 let tile_pos = Vector2i::new(x, y)+rect_position;
-                cells_data_vec.push(CellRules::from_tile(self.base().get_cell_atlas_coords(tile_pos), self.base().get_cell_source_id(tile_pos)));
+                let new_tile = CellRules::from_tile(self.base().get_cell_atlas_coords(tile_pos), self.base().get_cell_source_id(tile_pos));
+                cells_data_vec.push(new_tile);
             }
         }
         self.cell_data = CellDataWrapper::new(cells_data_vec, rect);
+        self.cell_data.add_chunk_updating(Vector2i::new(0, 0));
     }
     
     fn update_cell(&mut self, x: i32, y: i32) {
+        if !self.cell_data.is_chunk_updating(Vector2i::new(x,y)){
+            return;
+        }
         let mut cell_rules = self.cell_data.get(Vector2i::new(x, y)).clone();
         let tile_pos = Vector2i::new(x, y);
         cell_rules.update(&mut self.cell_data, tile_pos);
@@ -126,10 +133,12 @@ impl CellularAutomataLayer{
 }
 
 pub const TILE_TYPE_DATA_LAYER: &str = "tile_type";
+pub const CHUNK_SIZE: i32 = 64;
 
 pub struct CellDataWrapper{
     data: Vec<CellRules>,
     updated_hashes: HashSet<i32>,
+    processing_chunks: UpdatingChunkDoubleBuffer,
     width: i32,
     height: i32,
     min_x: i32,
@@ -141,6 +150,7 @@ impl CellDataWrapper{
         Self{
             data,
             updated_hashes: HashSet::new(),
+            processing_chunks: UpdatingChunkDoubleBuffer::new(),
             width: rect.size.x,
             height: rect.size.y,
             min_x: rect.position.x,
@@ -155,7 +165,9 @@ impl CellDataWrapper{
         if pos.y < 0 || pos.y >= self.height{
             return &CellRules::ForceEmpty;
         }
-
+        self.get_unchecked_local_space(pos)
+    }
+    fn get_unchecked_local_space(&self, pos: Vector2i) -> &CellRules{
         let index = self.map_vec_to_index(pos);
         &self.data[index]
     }
@@ -168,7 +180,7 @@ impl CellDataWrapper{
             return;
         }
 
-        if cell != *self.get(position){
+        if cell != *self.get_unchecked_local_space(pos){
             self.set_position_hash_updated(position);
         }
         let index = self.map_vec_to_index(pos);
@@ -188,16 +200,50 @@ impl CellDataWrapper{
     fn get_min_vec2i(&self) -> Vector2i{
         return Vector2i::new(self.min_x, self.min_y);
     }
-    fn set_position_hash_updated(&mut self, pos: Vector2i){
-        self.updated_hashes.insert(Self::get_position_hash(pos));
+    fn set_position_hash_updated(&mut self, position: Vector2i){
+        self.updated_hashes.insert(Self::get_position_hash(position));
     }
     fn reset_hashes_updated(&mut self){
         self.updated_hashes.clear();
     }
-    fn is_position_hash_updated(&self, pos: Vector2i) -> bool{
-        self.updated_hashes.contains(&Self::get_position_hash(pos))
+    fn is_position_hash_updated(&self, position: Vector2i) -> bool{
+        self.updated_hashes.contains(&Self::get_position_hash(position))
     }
-    fn get_position_hash(pos: Vector2i) -> i32{
-        pos.x ^ (pos.y<<16)
+    fn get_position_hash(global_position: Vector2i) -> i32{
+        global_position.x ^ (global_position.y<<16)
+    }
+    fn get_chunk_key(global_position: Vector2i) -> u64{
+        global_position.x.div_euclid(CHUNK_SIZE) as u64 | ((global_position.y.div_euclid(CHUNK_SIZE) as u64) << 32)
+    }
+    fn is_chunk_updating(&self, global_position: Vector2i) -> bool{
+        self.processing_chunks.contains(&Self::get_chunk_key(global_position))
+    }
+    fn add_chunk_updating(&mut self, global_position: Vector2i){
+        self.processing_chunks.insert(Self::get_chunk_key(global_position));
+    }
+    fn update_chunks_updating(&mut self){
+        self.processing_chunks.swap();
+    }
+}
+
+struct UpdatingChunkDoubleBuffer{
+    a:HashSet<u64>,
+    b:HashSet<u64>, 
+    a_used:bool
+}
+
+impl UpdatingChunkDoubleBuffer{
+    fn new() -> Self{
+        Self{a:HashSet::new(), b:HashSet::new(), a_used:false}
+    }
+    fn contains(&self, val: &u64) -> bool{
+        if self.a_used {&self.a} else {&self.b}.contains(val)
+    }
+    fn insert(&mut self, val: u64){
+        if !self.a_used {&mut self.a} else {&mut self.b}.insert(val);
+    }
+    fn swap(&mut self){
+        if self.a_used {&mut self.a} else {&mut self.b}.clear();
+        self.a_used ^= true;
     }
 }
