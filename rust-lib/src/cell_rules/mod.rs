@@ -62,15 +62,24 @@ impl CellRules{
     }
     pub fn update(&mut self, cell_data: &mut CellDataWrapper, position: Vector2i){
         match self{
-            Self::StaticCell { hydration }=>{hydration.update(cell_data, position)}
+            Self::StaticCell { hydration }=>{
+                hydration.update(cell_data, position);
+                cell_data.set(position, self.clone());
+            },
             Self::Water{water_cell}=>{water_cell.update(cell_data, position)},
-            Self::Moss { hydration, moss } => {hydration.update(cell_data, position);moss.update(cell_data, position);}
-            _default => {}
-        }
+            Self::Moss { hydration, moss } => {
+                hydration.update(cell_data, position);
+                moss.update(cell_data, position);
+                cell_data.set(position, self.clone());
+            },
+            _default => {return;}
+        };
     }
     pub fn get_hydration(&self) -> u8{
         match self {
             Self::Water { water_cell: _ } => 16,
+            Self::StaticCell { hydration } => hydration.hydration,
+            Self::Moss { hydration, moss: _ } => if hydration.hydration > 3 { hydration.hydration - 3}else{0},
             _default => 0
         }
     }
@@ -131,12 +140,12 @@ impl CellUpdate for Hydration{
         ];
         let mut hydration_max: u8 = 0;
         for offset in offsets{
-            hydration_max = hydration_max.max(data.get(position - offset).get_hydration());
+            hydration_max = hydration_max.max(data.get(position + offset).get_hydration());
         }
         if hydration_max > 0{
             self.hydration = hydration_max - 1;
         }else{
-            self.hydration = 0
+            self.hydration = 0;
         }
     }
 }
@@ -167,16 +176,24 @@ impl CellUpdate for MossSpread{
             offsets.swap(i, randi_range(i as i64, 0) as usize);
         }
         
-        if (randi_range(0, 200) as u8) < self.energy{
+        if (randi_range(2, 200) as u8) < self.energy{
             self.energy = 0;
             for offset in offsets{
                 if data.get(position - offset).is_solid(){
-                    data.set(position - offset, CellRules::Moss { hydration: Hydration { hydration: 2 }, moss: MossSpread { energy: 2 } });
+                    data.set(position - offset, CellRules::Moss { hydration: Hydration { hydration: 2 }, moss: MossSpread { energy: 0 } });
                     return;
                 }
             }
         }else{
-            self.energy += 1;
+            if data.get(position).get_hydration() > 4{
+                self.energy += 1;
+            }else{
+                if self.energy >= 4{
+                    self.energy -= 4;
+                }else{
+                    self.energy = 0;
+                }
+            }
         }
     }
 }
