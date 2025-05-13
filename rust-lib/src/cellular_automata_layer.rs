@@ -76,7 +76,7 @@ impl CellularAutomataLayer{
             }
         }
         self.last_visible_area = vis_area;
-        self.cell_data.reset_chunks_updated();
+        self.cell_data.reset_hashes_updated();
     }
 
     fn set_cell(&mut self, pos: Vector2i, atlas_coords: Vector2i, id: i32){
@@ -121,7 +121,7 @@ impl CellularAutomataLayer{
             //assume tiles are square
             rect[i]/=tile_size.x;
         }
-        return Rect2i::new(Vector2i::new(rect[0] - 1, rect[1] - 1), Vector2i::new(rect[2] + 2, rect[3] + 2));
+        return Rect2i::new(Vector2i::new(rect[0] - 1, rect[1] - 1), Vector2i::new(rect[2] + 3, rect[3] + 3));
     }
 }
 
@@ -129,7 +129,7 @@ pub const TILE_TYPE_DATA_LAYER: &str = "tile_type";
 
 pub struct CellDataWrapper{
     data: Vec<CellRules>,
-    updated_chunks: HashSet<i32>,
+    updated_hashes: HashSet<i32>,
     width: i32,
     height: i32,
     min_x: i32,
@@ -140,7 +140,7 @@ impl CellDataWrapper{
     fn new(data: Vec<CellRules>, rect: Rect2i) -> Self{
         Self{
             data,
-            updated_chunks: HashSet::new(),
+            updated_hashes: HashSet::new(),
             width: rect.size.x,
             height: rect.size.y,
             min_x: rect.position.x,
@@ -189,13 +189,13 @@ impl CellDataWrapper{
         return Vector2i::new(self.min_x, self.min_y);
     }
     fn set_position_hash_updated(&mut self, pos: Vector2i){
-        self.updated_chunks.insert(Self::get_position_hash(pos));
+        self.updated_hashes.insert(Self::get_position_hash(pos));
     }
-    fn reset_chunks_updated(&mut self){
-        self.updated_chunks.clear();
+    fn reset_hashes_updated(&mut self){
+        self.updated_hashes.clear();
     }
     fn is_position_hash_updated(&self, pos: Vector2i) -> bool{
-        self.updated_chunks.contains(&Self::get_position_hash(pos))
+        self.updated_hashes.contains(&Self::get_position_hash(pos))
     }
     fn get_position_hash(pos: Vector2i) -> i32{
         pos.x ^ (pos.y<<16)

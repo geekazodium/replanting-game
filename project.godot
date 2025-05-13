@@ -61,7 +61,7 @@ jump={
 [physics]
 
 2d/run_on_separate_thread=true
-common/physics_ticks_per_second=30
+common/physics_ticks_per_second=20
 common/physics_interpolation=true
 
 [rendering]
