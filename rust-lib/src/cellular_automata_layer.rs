@@ -6,6 +6,7 @@ use godot::builtin::Vector2i;
 use godot::classes::Camera2D;
 use godot::classes::ITileMapLayer;
 use godot::classes::TileMapLayer;
+use godot::global::godot_error;
 use godot::global::randf_range;
 use godot::obj::Base;
 use godot::obj::Gd;
@@ -40,6 +41,17 @@ impl ITileMapLayer for CellularAutomataLayer{
     }
     fn physics_process(&mut self, _delta: f64){
         self.update_tiles();
+    }
+}
+
+#[godot_api]
+impl CellularAutomataLayer{
+    #[func]
+    fn set_tile(&mut self, position: Vector2i, tile_src_pos: Vector2i, tile_src_id: i32){
+        if tile_src_id != 0{
+            godot_error!("multuple tilemap texture sources not implemented!");
+        }
+        self.cell_data.set(position, CellRules::from_atlas_coords(tile_src_pos));
     }
 }
 
