@@ -12,7 +12,7 @@ config_version=5
 
 config/name="Replanting"
 run/main_scene="res://scenes/game_scene.tscn"
-config/features=PackedStringArray("4.3", "GL Compatibility")
+config/features=PackedStringArray("4.4", "GL Compatibility")
 config/icon="res://resources/icon.svg"
 
 [display]

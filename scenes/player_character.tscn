@@ -1,9 +1,9 @@
 [gd_scene load_steps=8 format=3 uid="uid://06qiyuoewaqf"]
 
-[ext_resource type="Script" path="res://scripts/character_body_2d.gd" id="1_yfngl"]
-[ext_resource type="Script" path="res://scripts/player_input_direction.gd" id="2_uc2qu"]
-[ext_resource type="Script" path="res://scripts/player_jump_input.gd" id="3_2n0x4"]
-[ext_resource type="Script" path="res://scripts/bouyancy_area.gd" id="4_8k45x"]
+[ext_resource type="Script" uid="uid://cfiw1fsy6wj8u" path="res://scripts/character_body_2d.gd" id="1_yfngl"]
+[ext_resource type="Script" uid="uid://bitp0isfs8yjp" path="res://scripts/player_input_direction.gd" id="2_uc2qu"]
+[ext_resource type="Script" uid="uid://i5tkmrq2lg3q" path="res://scripts/player_jump_input.gd" id="3_2n0x4"]
+[ext_resource type="Script" uid="uid://csg7k3vuihuqy" path="res://scripts/bouyancy_area.gd" id="4_8k45x"]
 
 [sub_resource type="CapsuleShape2D" id="CapsuleShape2D_r1pwq"]
 
