@@ -13,8 +13,20 @@ mod water_cell;
 mod hydration;
 mod moss_spread;
 mod tree_spread;
+mod cell_support;
 
 pub const MAX_HYDRATION: u8 = 32;
+
+const EIGHT_CONNECTED_OFFSETS: [Vector2i; 8] = [
+            Vector2i::new(-1, 1),
+            Vector2i::DOWN,
+            Vector2i::new(1, 1),
+            Vector2i::LEFT,
+            Vector2i::RIGHT,
+            Vector2i::new(-1, -1),
+            Vector2i::UP,
+            Vector2i::new(1, -1)
+        ];
 
 #[derive(Clone, Debug, Copy)]
 pub enum CellRules{
@@ -23,7 +35,8 @@ pub enum CellRules{
     StaticCell{hydration: Hydration},
     Water{water_cell: WaterCell},
     Moss{hydration: Hydration, moss: MossSpread},
-    TreeRoot{hydration: Hydration, tree: TreeSpread}
+    TreeSpread{hydration: Hydration, tree: TreeSpread},
+    TreeTrunk{hydration: Hydration}
 }
 
 impl CellRules{
@@ -40,7 +53,8 @@ impl CellRules{
             Self::StaticCell{hydration: _} =>2,
             Self::Water{water_cell: _}=>3,
             Self::Moss { hydration: _, moss: _ } => 4,
-            Self::TreeRoot { hydration: _, tree: _ } => 5,
+            Self::TreeSpread { hydration: _, tree: _ } => 5,
+            Self::TreeTrunk { hydration: _ } => 6,
         }
     }
     pub fn can_set(&self)-> bool{
@@ -56,7 +70,8 @@ impl CellRules{
             Self::StaticCell{hydration: _}=>Vector2i::new(1, 0),
             Self::Water{water_cell: _}=>Vector2i::new(2, 0),
             Self::Moss { hydration:_, moss: _}=>Vector2i { x: 3, y: 0 },
-            Self::TreeRoot { hydration: _, tree: _} => Vector2i { x: 4, y: 0 }
+            Self::TreeSpread { hydration: _, tree: _} => Vector2i { x: 4, y: 0 },
+            Self::TreeTrunk { hydration: _} => Vector2i { x: 5, y: 0 }
         }
     }
     pub fn from_atlas_coords(coord: Vector2i) -> Self{
@@ -65,7 +80,7 @@ impl CellRules{
             1 =>Self::StaticCell{hydration: Hydration { hydration: 0 }},
             2 =>Self::Water{water_cell: WaterCell{pos_x_bias: randi_range(0,1) == 1}},
             3 =>Self::Moss { hydration: Hydration { hydration: 2 }, moss: MossSpread { energy: 8 } },
-            4 =>Self::TreeRoot { hydration: Hydration { hydration: 2 }, tree: TreeSpread { max_neigbours: 3 }},
+            4 =>Self::TreeSpread { hydration: Hydration { hydration: 2 }, tree: TreeSpread { max_neigbours: 3 }},
             _default=> Self::ForceEmpty
         }
     }
@@ -73,7 +88,7 @@ impl CellRules{
         match self{
             Self::StaticCell { hydration: _} => true,
             Self::Moss { hydration: _, moss: _} => true,
-            Self::TreeRoot { hydration: _, tree: _} => true,
+            Self::TreeSpread { hydration: _, tree: _} => true,
             _default => false
         }
     }
@@ -89,7 +104,7 @@ impl CellRules{
                 moss.update(cell_data, position);
                 cell_data.set(position, self.clone());
             },
-            Self::TreeRoot { hydration, tree } => {
+            Self::TreeSpread { hydration, tree } => {
                 hydration.update(cell_data, position);
                 tree.update(cell_data,position);
                 cell_data.set(position, self.clone());
@@ -102,7 +117,7 @@ impl CellRules{
             Self::Water { water_cell: _ } => MAX_HYDRATION,
             Self::StaticCell { hydration } => hydration.hydration,
             Self::Moss { hydration, moss: _ } => if hydration.hydration > 2 { hydration.hydration - 2}else{0},
-            Self::TreeRoot { hydration, tree: _ } => hydration.hydration,
+            Self::TreeSpread { hydration, tree: _ } => hydration.hydration,
             _default => 0
         }
     }
