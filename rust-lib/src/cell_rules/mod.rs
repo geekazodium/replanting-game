@@ -1,8 +1,18 @@
 use godot::builtin::Vector2i;
 use godot::global::randi_range;
+use hydration::Hydration;
+use moss_spread::MossSpread;
+use tree_spread::TreeSpread;
+use water_cell::WaterCell;
 
 use crate::cell_rules::cell_update::CellUpdate;
 use crate::cellular_automata_layer::CellDataWrapper;
+
+mod cell_update;
+mod water_cell;
+mod hydration;
+mod moss_spread;
+mod tree_spread;
 
 pub const MAX_HYDRATION: u8 = 32;
 
@@ -10,9 +20,10 @@ pub const MAX_HYDRATION: u8 = 32;
 pub enum CellRules{
     Empty,
     ForceEmpty,
-    StaticCell{hydration: hydration::Hydration},
-    Water{water_cell:water_cell::WaterCell},
-    Moss{hydration: hydration::Hydration, moss: moss_spread::MossSpread},
+    StaticCell{hydration: Hydration},
+    Water{water_cell: WaterCell},
+    Moss{hydration: Hydration, moss: MossSpread},
+    TreeRoot{hydration: Hydration, tree: TreeSpread}
 }
 
 impl CellRules{
@@ -22,14 +33,14 @@ impl CellRules{
             _default => CellRules::ForceEmpty
         }
     }
-    #[allow(unused)]
     fn to_id(&self)->u16{
         match self{
             Self::ForceEmpty=>0,
             Self::Empty=>1,
-            Self::StaticCell{hydration} =>2,
-            Self::Water{water_cell}=>3,
-            Self::Moss { hydration, moss } => 4,
+            Self::StaticCell{hydration: _} =>2,
+            Self::Water{water_cell: _}=>3,
+            Self::Moss { hydration: _, moss: _ } => 4,
+            Self::TreeRoot { hydration: _, tree: _ } => 5,
         }
     }
     pub fn can_set(&self)-> bool{
@@ -44,15 +55,17 @@ impl CellRules{
             Self::Empty=>Vector2i::new(0, 0),
             Self::StaticCell{hydration: _}=>Vector2i::new(1, 0),
             Self::Water{water_cell: _}=>Vector2i::new(2, 0),
-            Self::Moss { hydration:_, moss: _}=>Vector2i { x: 3, y: 0 }
+            Self::Moss { hydration:_, moss: _}=>Vector2i { x: 3, y: 0 },
+            Self::TreeRoot { hydration: _, tree: _} => Vector2i { x: 4, y: 0 }
         }
     }
     pub fn from_atlas_coords(coord: Vector2i) -> Self{
         match coord.x {
             0 =>Self::Empty,
-            1 =>Self::StaticCell{hydration: hydration::Hydration { hydration: 0 }},
-            2 =>Self::Water{water_cell: water_cell::WaterCell{pos_x_bias: randi_range(0,1) == 1}},
-            3 =>Self::Moss { hydration: hydration::Hydration { hydration: 2 }, moss: moss_spread::MossSpread { energy: 8 } },
+            1 =>Self::StaticCell{hydration: Hydration { hydration: 0 }},
+            2 =>Self::Water{water_cell: WaterCell{pos_x_bias: randi_range(0,1) == 1}},
+            3 =>Self::Moss { hydration: Hydration { hydration: 2 }, moss: MossSpread { energy: 8 } },
+            4 =>Self::TreeRoot { hydration: Hydration { hydration: 2 }, tree: TreeSpread { max_neigbours: 3 }},
             _default=> Self::ForceEmpty
         }
     }
@@ -60,6 +73,7 @@ impl CellRules{
         match self{
             Self::StaticCell { hydration: _} => true,
             Self::Moss { hydration: _, moss: _} => true,
+            Self::TreeRoot { hydration: _, tree: _} => true,
             _default => false
         }
     }
@@ -75,6 +89,11 @@ impl CellRules{
                 moss.update(cell_data, position);
                 cell_data.set(position, self.clone());
             },
+            Self::TreeRoot { hydration, tree } => {
+                hydration.update(cell_data, position);
+                tree.update(cell_data,position);
+                cell_data.set(position, self.clone());
+            }
             _default => {return;}
         };
     }
@@ -83,6 +102,7 @@ impl CellRules{
             Self::Water { water_cell: _ } => MAX_HYDRATION,
             Self::StaticCell { hydration } => hydration.hydration,
             Self::Moss { hydration, moss: _ } => if hydration.hydration > 2 { hydration.hydration - 2}else{0},
+            Self::TreeRoot { hydration, tree: _ } => hydration.hydration,
             _default => 0
         }
     }
@@ -96,8 +116,3 @@ impl PartialEq for CellRules{
         !self.eq(other)
     }
 }
-
-mod cell_update;
-mod water_cell;
-mod hydration;
-mod moss_spread;
