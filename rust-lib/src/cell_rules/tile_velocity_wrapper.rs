@@ -14,7 +14,7 @@ impl VelocityWrapper {
             velocity: 0b101 | MOVE_FLAG_SWAP,
         }
     }
-    pub fn get_velocity(&mut self) -> Vector2i {
+    pub fn get_velocity(&self) -> Vector2i {
         let x_index = self.velocity & 0b11;
         let y_index = (self.velocity >> 2) & 0b11;
 

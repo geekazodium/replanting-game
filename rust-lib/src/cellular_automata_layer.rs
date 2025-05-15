@@ -68,6 +68,12 @@ impl CellularAutomataLayer {
         let (range_x, range_y) = self.cell_data.get_range();
         let min_position = self.cell_data.get_min_vec2i();
 
+        for y in 0..range_y {
+            for x in 0..range_x {
+                self.update_cell(x + min_position.x, y + min_position.y);
+            }
+        }
+
         let mut update_order = [
             Vector2i::ONE,
             Vector2i::ZERO,
@@ -81,7 +87,7 @@ impl CellularAutomataLayer {
         for offset in update_order {
             for y in 0..range_y / 2 {
                 for x in 0..range_x / 2 {
-                    self.update_cell(
+                    self.move_cell(
                         x * 2 + min_position.x + offset.x,
                         y * 2 + min_position.y + offset.y,
                     );
@@ -139,6 +145,19 @@ impl CellularAutomataLayer {
         self.cell_data = CellDataWrapper::new(cells_data_vec, rect);
     }
 
+    fn move_cell(&mut self, x: i32, y: i32) {
+        let tile_pos = Vector2i::new(x, y);
+        let mut simulation_cell = self.cell_data.get(tile_pos).clone();
+        let v = simulation_cell.get_velocity();
+        if v == Vector2i::ZERO{
+            return;
+        }
+        if simulation_cell.is_move_mode_swap(){
+            self.cell_data.set(tile_pos, self.cell_data.get(tile_pos + v).clone());
+        }
+        simulation_cell.set_velocity(Vector2i::ZERO);
+        self.cell_data.set(tile_pos + v, simulation_cell);
+    }
     fn update_cell(&mut self, x: i32, y: i32) {
         let tile_pos = Vector2i::new(x, y);
         let mut simulation_cell = self.cell_data.get(tile_pos).clone();
@@ -211,20 +230,6 @@ impl CellDataWrapper {
 
         let index = self.map_vec_to_index(pos);
         &self.data[index]
-    }
-    pub fn get_mut(&mut self, position: Vector2i) -> &mut SimulationCell {
-        let pos = self.map_global_pos_to_grid(position);
-        if pos.x < 0 || pos.x >= self.width {
-            godot_error!("x input out of bounds");
-            panic!("");
-        }
-        if pos.y < 0 || pos.y >= self.height {
-            godot_error!("y input out of bounds");
-            panic!("");
-        }
-
-        let index = self.map_vec_to_index(pos);
-        &mut self.data[index]
     }
     pub fn set(&mut self, position: Vector2i, cell: SimulationCell) {
         let pos = self.map_global_pos_to_grid(position);

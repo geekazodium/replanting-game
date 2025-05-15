@@ -17,9 +17,9 @@ impl CellUpdate for WaterCell {
             3 - dir_bias.min(0),
         ];
         for offset_index in offset_indices {
-            if neighbors[offset_index as usize].get_weight() > this.get_weight() {
+            if neighbors[offset_index as usize].get_weight() < this.get_weight() {
                 let offset = EIGHT_CONNECTED_OFFSETS[offset_index as usize];
-                if dir_bias * offset.x as i8 == 1 {
+                if dir_bias * offset.x as i8 == -1 {
                     self.pos_x_bias ^= true;
                 }
                 this.set_velocity(offset);

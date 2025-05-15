@@ -22,29 +22,27 @@ pub const MOVE_FLAG_SWAP: i8 = 0b0010000;
 pub const MOVE_FLAG_COPY: i8 = 0b0100000;
 
 pub const EIGHT_CONNECTED_OFFSETS: [Vector2i; 8] = [
-    Vector2i::new(-1, 1),
-    Vector2i::DOWN,
-    Vector2i::new(1, 1),
-    Vector2i::LEFT,
-    Vector2i::RIGHT,
     Vector2i::new(-1, -1),
     Vector2i::UP,
     Vector2i::new(1, -1),
+    Vector2i::LEFT,
+    Vector2i::RIGHT,
+    Vector2i::new(-1, 1),
+    Vector2i::DOWN,
+    Vector2i::new(1, 1),
 ];
 
 #[derive(Clone, Copy)]
 pub struct SimulationCell {
     rules: CellRules,
-    velocity: VelocityWrapper,
-    weight: u8,
+    velocity: VelocityWrapper
 }
 
 impl SimulationCell {
     pub fn new(rules: CellRules) -> Self {
         Self {
             rules,
-            velocity: VelocityWrapper::new(),
-            weight: 0,
+            velocity: VelocityWrapper::new()
         }
     }
     pub fn update(&mut self, neighbors: [&SimulationCell; 8]) {
@@ -56,7 +54,7 @@ impl SimulationCell {
         self.rules.is_solid()
     }
     fn get_weight(&self) -> u8 {
-        self.weight
+        self.rules.get_weight()
     }
     fn get_h_distance(&self) -> u16 {
         self.rules.get_support_distance_h()
@@ -147,6 +145,15 @@ impl CellRules {
         match self {
             Self::ForceEmpty => false,
             _default => true,
+        }
+    }
+    pub fn get_weight(&self) -> u8{
+        match self{
+            Self::ForceEmpty => u8::MAX,
+            Self::Water { water_cell: _ } => 2,
+            Self::StaticCell { hydration: _ } => 3,
+            Self::Empty => 1,
+            _ => 0
         }
     }
     pub fn to_atlas_coords(&self) -> Vector2i {
