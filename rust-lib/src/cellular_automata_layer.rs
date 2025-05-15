@@ -7,7 +7,7 @@ use godot::classes::Camera2D;
 use godot::classes::ITileMapLayer;
 use godot::classes::TileMapLayer;
 use godot::global::godot_error;
-use godot::global::randf_range;
+use godot::global::randi_range;
 use godot::obj::Base;
 use godot::obj::Gd;
 use godot::obj::WithBaseField;
@@ -60,15 +60,13 @@ impl CellularAutomataLayer{
         let (range_x, range_y) = self.cell_data.get_range();
         let min_position = self.cell_data.get_min_vec2i();
 
-        for y in (0..range_y).rev(){
-            let iter = 0..range_x;
-            if randf_range(0., 2.) > 1.0{
-                for x in iter.rev(){
-                    self.update_cell(x+min_position.x, y + min_position.y);
-                }
-            }else{
-                for x in iter{
-                    self.update_cell(x+min_position.x, y + min_position.y);
+        let mut update_order = [Vector2i::ONE, Vector2i::ZERO, Vector2i::DOWN, Vector2i::RIGHT];
+        update_order.rotate_left(randi_range(0, 3) as usize);
+        if randi_range(0, 1) == 0 {update_order.reverse();}
+        for offset in update_order{
+            for y in 0..range_y/2{
+                for x in 0..range_x/2{
+                    self.update_cell(x * 2 + min_position.x + offset.x, y * 2 + min_position.y + offset.y);
                 }
             }
         }
