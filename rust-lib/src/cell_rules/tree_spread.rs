@@ -2,10 +2,9 @@ use super::cell_update::CellUpdate;
 use super::SimulationCell;
 
 #[derive(Clone, Copy, Debug)]
-pub struct TreeSpread{
-}
+pub struct TreeSpread {}
 
-impl CellUpdate for TreeSpread{
+impl CellUpdate for TreeSpread {
     fn update(&mut self, _data: [&SimulationCell; 8], _position: &mut SimulationCell) {
         // let original_cell: CellRules = data.get(position).clone();
         // if original_cell.get_hydration() < MAX_HYDRATION - 20{
