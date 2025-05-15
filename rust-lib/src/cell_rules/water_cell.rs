@@ -1,4 +1,6 @@
-use super::{cell_update::CellUpdate, SimulationCell, EIGHT_CONNECTED_OFFSETS};
+use super::cell_update::CellUpdate;
+use super::SimulationCell;
+use super::EIGHT_CONNECTED_OFFSETS;
 
 #[derive(Clone, Copy, Debug)]
 pub struct WaterCell {

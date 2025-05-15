@@ -35,14 +35,14 @@ pub const EIGHT_CONNECTED_OFFSETS: [Vector2i; 8] = [
 #[derive(Clone, Copy)]
 pub struct SimulationCell {
     rules: CellRules,
-    velocity: VelocityWrapper
+    velocity: VelocityWrapper,
 }
 
 impl SimulationCell {
     pub fn new(rules: CellRules) -> Self {
         Self {
             rules,
-            velocity: VelocityWrapper::new()
+            velocity: VelocityWrapper::new(),
         }
     }
     pub fn update(&mut self, neighbors: [&SimulationCell; 8]) {
@@ -147,13 +147,13 @@ impl CellRules {
             _default => true,
         }
     }
-    pub fn get_weight(&self) -> u8{
-        match self{
+    pub fn get_weight(&self) -> u8 {
+        match self {
             Self::ForceEmpty => u8::MAX,
             Self::Water { water_cell: _ } => 2,
             Self::StaticCell { hydration: _ } => 3,
             Self::Empty => 1,
-            _ => 0
+            _ => 0,
         }
     }
     pub fn to_atlas_coords(&self) -> Vector2i {

@@ -149,11 +149,12 @@ impl CellularAutomataLayer {
         let tile_pos = Vector2i::new(x, y);
         let mut simulation_cell = self.cell_data.get(tile_pos).clone();
         let v = simulation_cell.get_velocity();
-        if v == Vector2i::ZERO{
+        if v == Vector2i::ZERO {
             return;
         }
-        if simulation_cell.is_move_mode_swap(){
-            self.cell_data.set(tile_pos, self.cell_data.get(tile_pos + v).clone());
+        if simulation_cell.is_move_mode_swap() {
+            self.cell_data
+                .set(tile_pos, self.cell_data.get(tile_pos + v).clone());
         }
         simulation_cell.set_velocity(Vector2i::ZERO);
         self.cell_data.set(tile_pos + v, simulation_cell);
