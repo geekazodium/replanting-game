@@ -1,7 +1,5 @@
-use godot::builtin::Vector2i;
-
-use crate::cellular_automata_layer::CellDataWrapper;
+use super::SimulationCell;
 
 pub trait CellUpdate {
-    fn update(&mut self, data: &mut CellDataWrapper, position: Vector2i);
+    fn update(&mut self, neighbors: [&SimulationCell; 8], this: &mut SimulationCell);
 }

@@ -14,7 +14,9 @@ use godot::obj::WithBaseField;
 use godot::prelude::godot_api;
 use godot::prelude::GodotClass;
 
+use crate::cell_rules;
 use crate::cell_rules::CellRules;
+use crate::cell_rules::SimulationCell;
 
 #[derive(GodotClass)]
 #[class(base = TileMapLayer)]
@@ -51,7 +53,7 @@ impl CellularAutomataLayer{
         if tile_src_id != 0{
             godot_error!("multuple tilemap texture sources not implemented!");
         }
-        self.cell_data.set(position, CellRules::from_atlas_coords(tile_src_pos));
+        self.cell_data.set(position, SimulationCell::new(CellRules::from_atlas_coords(tile_src_pos)));
     }
 }
 
@@ -79,7 +81,7 @@ impl CellularAutomataLayer{
                     continue;
                 }
                 let cell = self.cell_data.get(tile_pos);
-                if *cell != CellRules::ForceEmpty{
+                if !cell.cell_type_eq_rules(CellRules::ForceEmpty){
                     let atlas_coords = cell.to_atlas_coords();
                     self.set_cell(tile_pos, atlas_coords, 0);
                 }
@@ -105,18 +107,24 @@ impl CellularAutomataLayer{
         for y in 0..range.y{
             for x in 0..range.x{
                 let tile_pos = Vector2i::new(x, y)+rect_position;
-                cells_data_vec.push(CellRules::from_tile(self.base().get_cell_atlas_coords(tile_pos), self.base().get_cell_source_id(tile_pos)));
+                let rules = CellRules::from_tile(self.base().get_cell_atlas_coords(tile_pos), self.base().get_cell_source_id(tile_pos));
+                cells_data_vec.push(SimulationCell::new(rules));
             }
         }
         self.cell_data = CellDataWrapper::new(cells_data_vec, rect);
     }
     
     fn update_cell(&mut self, x: i32, y: i32) {
-        let mut cell_rules = self.cell_data.get(Vector2i::new(x, y)).clone();
         let tile_pos = Vector2i::new(x, y);
-        cell_rules.update(&mut self.cell_data, tile_pos);
+        let mut simulation_cell = self.cell_data.get(tile_pos).clone();
+        simulation_cell.update(self.get_cell_neighbors(x,y));
+        self.cell_data.set(tile_pos, simulation_cell);
     }
-    
+    fn get_cell_neighbors(&self, x:i32, y:i32) -> [&SimulationCell; 8]{
+        cell_rules::EIGHT_CONNECTED_OFFSETS
+            .map(|offset|self.cell_data.get(Vector2i::new(x, y) + offset))
+    }
+
     fn get_visible_tile_area(&self) -> Rect2i{        
         let camera = self.camera.as_ref().expect("no camera set");
         let camera_rect = camera.get_viewport_rect();
@@ -138,7 +146,8 @@ impl CellularAutomataLayer{
 pub const TILE_TYPE_DATA_LAYER: &str = "tile_type";
 
 pub struct CellDataWrapper{
-    data: Vec<CellRules>,
+    data: Vec<SimulationCell>,
+    boundary: SimulationCell,
     updated_hashes: HashSet<i32>,
     width: i32,
     height: i32,
@@ -147,29 +156,44 @@ pub struct CellDataWrapper{
 }
 
 impl CellDataWrapper{
-    fn new(data: Vec<CellRules>, rect: Rect2i) -> Self{
+    fn new(data: Vec<SimulationCell>, rect: Rect2i) -> Self{
         Self{
             data,
             updated_hashes: HashSet::new(),
+            boundary: SimulationCell::new(CellRules::ForceEmpty),
             width: rect.size.x,
             height: rect.size.y,
             min_x: rect.position.x,
             min_y: rect.position.y
         }
     }
-    pub fn get(&self, position: Vector2i) -> &CellRules{
+    pub fn get(&self, position: Vector2i) -> &SimulationCell{
         let pos = self.map_global_pos_to_grid(position);
         if pos.x < 0 || pos.x >= self.width{
-            return &CellRules::ForceEmpty;
+            return &self.boundary;
         }
         if pos.y < 0 || pos.y >= self.height{
-            return &CellRules::ForceEmpty;
+            return &self.boundary;
         }
 
         let index = self.map_vec_to_index(pos);
         &self.data[index]
     }
-    pub fn set(&mut self, position: Vector2i, cell: CellRules){
+    pub fn get_mut(&mut self, position: Vector2i) -> &mut SimulationCell{
+        let pos = self.map_global_pos_to_grid(position);
+        if pos.x < 0 || pos.x >= self.width{
+            godot_error!("x input out of bounds");
+            panic!("");
+        }
+        if pos.y < 0 || pos.y >= self.height{
+            godot_error!("y input out of bounds");
+            panic!("");
+        }
+
+        let index = self.map_vec_to_index(pos);
+        &mut self.data[index]
+    }
+    pub fn set(&mut self, position: Vector2i, cell: SimulationCell){
         let pos = self.map_global_pos_to_grid(position);
         if pos.x < 0 || pos.x >= self.width{
             return;
@@ -178,7 +202,7 @@ impl CellDataWrapper{
             return;
         }
 
-        if cell != *self.get(position){
+        if !cell.cell_type_eq(self.get(position)){
             self.set_position_hash_updated(position);
         }
         let index = self.map_vec_to_index(pos);

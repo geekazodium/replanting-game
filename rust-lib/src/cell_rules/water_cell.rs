@@ -1,8 +1,4 @@
-use super::CellRules;
-use super::cell_update::CellUpdate;
-use godot::builtin::Vector2i;
-
-use crate::cellular_automata_layer::CellDataWrapper;
+use super::{cell_update::CellUpdate, SimulationCell, EIGHT_CONNECTED_OFFSETS};
 
 #[derive(Clone, Copy, Debug)]
 pub struct WaterCell{
@@ -10,22 +6,23 @@ pub struct WaterCell{
 }
 
 impl CellUpdate for WaterCell{
-    fn update(&mut self, data: &mut CellDataWrapper, position: Vector2i) {
-        let dir_bias = if self.pos_x_bias {1} else {-1};
-        let offsets = vec![
-            Vector2i::UP,
-            Vector2i::UP + Vector2i::LEFT * dir_bias,
-            Vector2i::UP + Vector2i::RIGHT * dir_bias,
-            Vector2i::LEFT * dir_bias,
-            Vector2i::RIGHT * dir_bias
+    fn update(&mut self, neighbors: [&SimulationCell; 8], this: &mut SimulationCell) {
+        let dir_bias:i8 = if self.pos_x_bias {-1} else {1};
+
+        let offset_indices = vec![
+            6,
+            6 + dir_bias,
+            6 - dir_bias,
+            3 + dir_bias.max(0),
+            3 - dir_bias.min(0)
         ];
-        for offset in offsets{
-            if *data.get(position - offset) == CellRules::Empty{
-                if dir_bias * offset.x == 1{
+        for offset_index in offset_indices{
+            if neighbors[offset_index as usize].get_weight() > this.get_weight(){
+                let offset = EIGHT_CONNECTED_OFFSETS[offset_index as usize];
+                if dir_bias * offset.x as i8 == 1{
                     self.pos_x_bias ^= true;
                 }
-                data.set(position - offset, CellRules::Water { water_cell: *self });
-                data.set(position, CellRules::Empty);
+                this.set_velocity(offset);
                 return;
             }
         }

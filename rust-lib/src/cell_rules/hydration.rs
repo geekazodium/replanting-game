@@ -1,25 +1,30 @@
-use godot::builtin::Vector2i;
-
-use crate::cellular_automata_layer::CellDataWrapper;
-
 use super::cell_update::CellUpdate;
-use super::EIGHT_CONNECTED_OFFSETS;
+use super::SimulationCell;
 
 #[derive(Clone, Copy, Debug)]
 pub struct Hydration{
-    pub(crate) hydration: u8
+    hydration: u8
 }
 
 impl CellUpdate for Hydration{
-    fn update(&mut self, data: &mut CellDataWrapper, position: Vector2i) {
+    fn update(&mut self, neighbors: [&SimulationCell; 8], _this: &mut SimulationCell) {
         let mut hydration_max: u8 = 0;
-        for offset in EIGHT_CONNECTED_OFFSETS{
-            hydration_max = hydration_max.max(data.get(position + offset).get_hydration());
+        for n in neighbors{
+            hydration_max = n.get_hydration();
         }
         if hydration_max > 0{
             self.hydration = hydration_max - 1;
         }else{
             self.hydration = 0;
         }
+    }
+}
+
+impl Hydration{
+    pub fn new() -> Self{
+        Self { hydration: 0 }
+    }
+    pub fn get(&self) -> u8{
+        self.hydration
     }
 }
