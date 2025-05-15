@@ -9,7 +9,7 @@ func _process(_delta: float) -> void:
 	self.global_position = floor(self.get_global_mouse_position() / 8) * 8 + Vector2.ONE * 4;
 
 func _physics_process(_delta: float) -> void:
-	self.global_position = floor(self.get_global_mouse_position() / 8) * 8 - Vector2.ONE * 4;
+	self.global_position = floor(self.get_global_mouse_position() / 8) * 8;
 	if Input.is_action_pressed(self.place_tile_button):
 		if !self.last_placing:
 			self.last_place_pos = self.global_position;
