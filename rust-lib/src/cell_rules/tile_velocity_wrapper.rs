@@ -38,3 +38,47 @@ impl VelocityWrapper{
         self.velocity & MOVE_FLAG_SWAP != 0
     }
 }
+
+#[cfg(test)]
+mod tile_velocity_tests{
+    use crate::cell_rules::{EIGHT_CONNECTED_OFFSETS, MOVE_FLAG_COPY, MOVE_FLAG_SWAP};
+
+    use super::VelocityWrapper;
+
+    #[test]
+    fn test_write_vec_then_retrive(){
+        for saved_velocity in EIGHT_CONNECTED_OFFSETS{
+            let mut wrapper = VelocityWrapper::new();
+            wrapper.set_velocity(saved_velocity);
+            assert_eq!(wrapper.get_velocity(), saved_velocity);
+        }
+    }
+    
+    #[test]
+    fn test_write_vec_then_mode_then_retrive(){
+        for saved_velocity in EIGHT_CONNECTED_OFFSETS{
+            for f in [MOVE_FLAG_COPY,MOVE_FLAG_SWAP]{
+                let mut wrapper = VelocityWrapper::new();
+                wrapper.set_velocity(saved_velocity);
+                wrapper.set_velocity_mode_type(f);
+                assert_eq!(wrapper.get_velocity(), saved_velocity);
+                assert_eq!(wrapper.is_move_mode_copy(), MOVE_FLAG_COPY == f);
+                assert_eq!(wrapper.is_move_mode_swap(), MOVE_FLAG_SWAP == f);
+            }
+        }
+    }
+
+    #[test]
+    fn test_write_mode_then_vec_then_retrive(){
+        for saved_velocity in EIGHT_CONNECTED_OFFSETS{
+            for f in [MOVE_FLAG_COPY,MOVE_FLAG_SWAP]{
+                let mut wrapper = VelocityWrapper::new();
+                wrapper.set_velocity_mode_type(f);
+                wrapper.set_velocity(saved_velocity);
+                assert_eq!(wrapper.get_velocity(), saved_velocity);
+                assert_eq!(wrapper.is_move_mode_copy(), MOVE_FLAG_COPY == f);
+                assert_eq!(wrapper.is_move_mode_swap(), MOVE_FLAG_SWAP == f);
+            }
+        }
+    }
+}
