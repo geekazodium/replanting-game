@@ -10,7 +10,7 @@ impl CellUpdate for Hydration {
     fn update(&mut self, neighbors: [&SimulationCell; 8], _this: &mut SimulationCell) {
         let mut hydration_max: u8 = 0;
         for n in neighbors {
-            hydration_max = n.get_hydration();
+            hydration_max = hydration_max.max(n.get_hydration());
         }
         if hydration_max > 0 {
             self.hydration = hydration_max - 1;
