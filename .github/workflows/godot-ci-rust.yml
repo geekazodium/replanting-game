@@ -36,7 +36,7 @@ env:
   PROJECT_PATH: ./
 
 jobs:
-  buid-rust-wasm32:
+  build-rust-wasm32:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v4
@@ -83,6 +83,7 @@ jobs:
           mkdir -v -p ~/.local/share/godot/export_templates/
           mv /root/.local/share/godot/export_templates/${GODOT_VERSION}.stable ~/.local/share/godot/export_templates/${GODOT_VERSION}.stable
       - name: Pull rust-lib
+        needs: build-rust-wasm32
         uses: actions/download-artifact@v4
         with:
           name: rust-lib
