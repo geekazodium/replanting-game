@@ -89,7 +89,7 @@ jobs:
           name: rust-lib
       - name: Move rust-lib
         run: |
-          mkdir ./rust-lib/target/wasm32-unknown-emscripten/debug/
+          mkdir -p ./rust-lib/target/wasm32-unknown-emscripten/debug/
           mv ./rust_lib.wasm ./rust-lib/target/wasm32-unknown-emscripten/debug/rust_lib.wasm
       - name: Web Build
         run: |
