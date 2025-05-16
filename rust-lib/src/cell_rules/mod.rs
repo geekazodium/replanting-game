@@ -1,6 +1,5 @@
 use cell_support::CellSupport;
 use godot::builtin::Vector2i;
-use godot::global::randi_range;
 use hydration::Hydration;
 use moss_spread::MossSpread;
 use tile_velocity_wrapper::VelocityWrapper;
@@ -53,7 +52,7 @@ impl SimulationCell {
     fn is_solid(&self) -> bool {
         self.rules.is_solid()
     }
-    fn get_weight(&self) -> u8 {
+    pub fn get_weight(&self) -> u8 {
         self.rules.get_weight()
     }
     fn get_h_distance(&self) -> u16 {
@@ -150,9 +149,10 @@ impl CellRules {
     pub fn get_weight(&self) -> u8 {
         match self {
             Self::ForceEmpty => u8::MAX,
-            Self::Water { water_cell: _ } => 2,
-            Self::StaticCell { hydration: _ } => 3,
-            Self::Empty => 1,
+            Self::StaticCell { hydration: _ } => 128,
+            Self::Moss { hydration:_, moss: _ } => 100,
+            Self::Water { water_cell: _ } => 70,
+            Self::Empty => 50,
             _ => 0,
         }
     }
@@ -183,13 +183,11 @@ impl CellRules {
                 hydration: Hydration::new(),
             },
             2 => Self::Water {
-                water_cell: WaterCell {
-                    pos_x_bias: randi_range(0, 1) == 1,
-                },
+                water_cell: WaterCell::new(),
             },
             3 => Self::Moss {
                 hydration: Hydration::new(),
-                moss: MossSpread { energy: 8 },
+                moss: MossSpread::new(),
             },
             4 => Self::TreeSpread {
                 hydration: Hydration::new(),

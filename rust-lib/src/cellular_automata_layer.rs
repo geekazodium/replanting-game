@@ -68,29 +68,47 @@ impl CellularAutomataLayer {
         let (range_x, range_y) = self.cell_data.get_range();
         let min_position = self.cell_data.get_min_vec2i();
 
-        for y in 0..range_y {
-            for x in 0..range_x {
-                self.update_cell(x + min_position.x, y + min_position.y);
-            }
-        }
-
         let mut update_order = [
-            Vector2i::ONE,
             Vector2i::ZERO,
-            Vector2i::DOWN,
+            Vector2i::ONE,
             Vector2i::RIGHT,
+            Vector2i::DOWN,
         ];
-        update_order.rotate_left(randi_range(0, 3) as usize);
         if randi_range(0, 1) == 0 {
-            update_order.reverse();
+            update_order.swap(0,1);
         }
+        if randi_range(0, 1) == 0 {
+            update_order.swap(2,3);
+        }
+        update_order.rotate_left(randi_range(0, 3) as usize);
         for offset in update_order {
             for y in 0..range_y / 2 {
                 for x in 0..range_x / 2 {
-                    self.move_cell(
+                    self.update_cell(
                         x * 2 + min_position.x + offset.x,
                         y * 2 + min_position.y + offset.y,
                     );
+                }
+            }
+        }
+
+        for offset in update_order {
+            for y in 0..range_y / 2 {
+                let r = 0..range_x / 2;
+                if randi_range(0, 1) == 1{
+                    for x in r{
+                        self.move_cell(
+                            x * 2 + min_position.x + offset.x,
+                            y * 2 + min_position.y + offset.y,
+                        );
+                    }
+                } else{
+                    for x in r.rev(){
+                        self.move_cell(
+                            x * 2 + min_position.x + offset.x,
+                            y * 2 + min_position.y + offset.y,
+                        );
+                    }
                 }
             }
         }
@@ -152,9 +170,14 @@ impl CellularAutomataLayer {
         if v == Vector2i::ZERO {
             return;
         }
+        let mut move_to = self.cell_data.get(tile_pos + v).clone();
+        if move_to.get_weight() > simulation_cell.get_weight(){
+            return;
+        }
+        move_to.set_velocity(Vector2i::ZERO);
         if simulation_cell.is_move_mode_swap() {
             self.cell_data
-                .set(tile_pos, self.cell_data.get(tile_pos + v).clone());
+                .set(tile_pos, move_to);
         }
         simulation_cell.set_velocity(Vector2i::ZERO);
         self.cell_data.set(tile_pos + v, simulation_cell);
