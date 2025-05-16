@@ -16,6 +16,17 @@ jobs:
 
     steps:
     - uses: actions/checkout@v4
+    - name: setup nightly toolchain
+      run: |
+        rustup toolchain install nightly
+        rustup component add rust-src --toolchain nightly
+        rustup target add wasm32-unknown-emscripten --toolchain nightly
+    - name: setup emsdk
+      run: |
+        git clone https://github.com/emscripten-core/emsdk.git
+        cd emsdk
+        ./emsdk install 3.1.62
+        ./emsdk activate 3.1.62
     - name: Run tests
       run: |
         cd rust-lib
@@ -23,4 +34,4 @@ jobs:
     - name: Build
       run: |
         cd rust-lib
-        cargo build --verbose --release
+        cargo +nightly build --features nothreads -Zbuild-std --target wasm32-unknown-emscripten --release
