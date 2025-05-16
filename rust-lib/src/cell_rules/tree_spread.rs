@@ -22,7 +22,7 @@ impl CellUpdate for TreeSpread {
             this.set_velocity(EIGHT_CONNECTED_OFFSETS[randi_range(0, 2) as usize]);
             this.replace(CellRules::TreeTrunk {
                 hydration: Hydration::new(),
-                support: CellSupport::new(4),
+                support: CellSupport::new(10),
             });
             return;
         }
