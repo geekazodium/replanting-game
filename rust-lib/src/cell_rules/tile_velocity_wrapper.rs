@@ -1,4 +1,5 @@
 use super::MOVE_FLAG_COPY;
+use super::MOVE_FLAG_IGNORE_WEIGHT;
 use super::MOVE_FLAG_SWAP;
 
 use godot::builtin::Vector2i;
@@ -35,6 +36,9 @@ impl VelocityWrapper {
     }
     pub fn is_move_mode_copy(&self) -> bool {
         self.velocity & MOVE_FLAG_COPY != 0
+    }
+    pub fn is_move_ignoring_weight(&self) -> bool {
+        self.velocity & MOVE_FLAG_IGNORE_WEIGHT != 0
     }
     pub fn is_move_mode_swap(&self) -> bool {
         self.velocity & MOVE_FLAG_SWAP != 0

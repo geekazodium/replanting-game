@@ -15,10 +15,11 @@ mod moss_spread;
 mod tree_spread;
 mod water_cell;
 
-pub const MAX_HYDRATION: u8 = 32;
+pub const MAX_HYDRATION: u8 = 128;
 
 pub const MOVE_FLAG_SWAP: i8 = 0b0010000;
 pub const MOVE_FLAG_COPY: i8 = 0b0100000;
+pub const MOVE_FLAG_IGNORE_WEIGHT: i8 = 0b1000000;
 
 pub const EIGHT_CONNECTED_OFFSETS: [Vector2i; 8] = [
     Vector2i::new(-1, -1),
@@ -47,7 +48,9 @@ impl SimulationCell {
     pub fn update(&mut self, neighbors: [&SimulationCell; 8]) {
         let mut rules = self.rules.clone();
         rules.update(neighbors, self);
-        self.rules = rules;
+        if self.rules.to_id() == rules.to_id() {
+            self.rules = rules;
+        }
     }
     fn is_solid(&self) -> bool {
         self.rules.is_solid()
@@ -75,6 +78,12 @@ impl SimulationCell {
     }
     pub fn set_velocity_mode_type(&mut self, type_flag: i8) {
         self.velocity.set_velocity_mode_type(type_flag);
+    }
+    pub fn is_move_ignoring_weight(&self) -> bool {
+        self.velocity.is_move_ignoring_weight()
+    }
+    pub fn replace(&mut self, rules: CellRules) {
+        self.rules = rules;
     }
     pub fn is_move_mode_copy(&self) -> bool {
         self.velocity.is_move_mode_copy()
@@ -150,10 +159,20 @@ impl CellRules {
         match self {
             Self::ForceEmpty => u8::MAX,
             Self::StaticCell { hydration: _ } => 128,
-            Self::Moss { hydration:_, moss: _ } => 100,
+            Self::Moss {
+                hydration: _,
+                moss: _,
+            } => 100,
             Self::Water { water_cell: _ } => 70,
+            Self::TreeSpread {
+                hydration: _,
+                tree: _,
+            } => 127,
+            Self::TreeTrunk {
+                hydration: _,
+                support: _,
+            } => 120,
             Self::Empty => 50,
-            _ => 0,
         }
     }
     pub fn to_atlas_coords(&self) -> Vector2i {
@@ -191,14 +210,11 @@ impl CellRules {
             },
             4 => Self::TreeSpread {
                 hydration: Hydration::new(),
-                tree: TreeSpread {},
+                tree: TreeSpread::new(),
             },
             5 => Self::TreeTrunk {
                 hydration: Hydration::new(),
-                support: CellSupport {
-                    distance_from_solid_h: 0,
-                    strength: 3,
-                },
+                support: CellSupport::new(3),
             },
             _default => Self::ForceEmpty,
         }
@@ -227,21 +243,9 @@ impl CellRules {
                 hydration.update(neighbors, this_cell);
                 moss.update(neighbors, this_cell);
             }
-            Self::TreeSpread {
-                hydration: _,
-                tree: _,
-            } => {
-                //let mut min_distance_h = u16::MAX;
-                // for i in 0..5{
-                //     let offset = EIGHT_CONNECTED_OFFSETS[i];
-                //     let h_distance = cell_data.get(position + offset).get_support_distance_h();
-                //     min_distance_h = min_distance_h.min(if h_distance == u16::MAX {u16::MAX} else {h_distance + offset.x.abs() as u16});
-                // }
-                // if min_distance_h > 15{
-                //     return;
-                // }
-                // // hydration.update(cell_data, position);
-                // tree.update(cell_data,position);
+            Self::TreeSpread { hydration, tree } => {
+                hydration.update(neighbors, this_cell);
+                tree.update(neighbors, this_cell);
             }
             Self::TreeTrunk { hydration, support } => {
                 hydration.update(neighbors, this_cell);
@@ -276,7 +280,7 @@ impl CellRules {
             Self::TreeTrunk {
                 hydration: _,
                 support,
-            } => support.distance_from_solid_h,
+            } => support.get_h_distance(),
             Self::StaticCell { hydration: _ } => 0,
             _default => u16::MAX,
         }

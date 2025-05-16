@@ -75,10 +75,10 @@ impl CellularAutomataLayer {
             Vector2i::DOWN,
         ];
         if randi_range(0, 1) == 0 {
-            update_order.swap(0,1);
+            update_order.swap(0, 1);
         }
         if randi_range(0, 1) == 0 {
-            update_order.swap(2,3);
+            update_order.swap(2, 3);
         }
         update_order.rotate_left(randi_range(0, 3) as usize);
         for offset in update_order {
@@ -95,15 +95,15 @@ impl CellularAutomataLayer {
         for offset in update_order {
             for y in 0..range_y / 2 {
                 let r = 0..range_x / 2;
-                if randi_range(0, 1) == 1{
-                    for x in r{
+                if randi_range(0, 1) == 1 {
+                    for x in r {
                         self.move_cell(
                             x * 2 + min_position.x + offset.x,
                             y * 2 + min_position.y + offset.y,
                         );
                     }
-                } else{
-                    for x in r.rev(){
+                } else {
+                    for x in r.rev() {
                         self.move_cell(
                             x * 2 + min_position.x + offset.x,
                             y * 2 + min_position.y + offset.y,
@@ -171,13 +171,14 @@ impl CellularAutomataLayer {
             return;
         }
         let mut move_to = self.cell_data.get(tile_pos + v).clone();
-        if move_to.get_weight() > simulation_cell.get_weight(){
+        if move_to.get_weight() > simulation_cell.get_weight()
+            && !simulation_cell.is_move_ignoring_weight()
+        {
             return;
         }
         move_to.set_velocity(Vector2i::ZERO);
         if simulation_cell.is_move_mode_swap() {
-            self.cell_data
-                .set(tile_pos, move_to);
+            self.cell_data.set(tile_pos, move_to);
         }
         simulation_cell.set_velocity(Vector2i::ZERO);
         self.cell_data.set(tile_pos + v, simulation_cell);

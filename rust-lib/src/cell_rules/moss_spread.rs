@@ -2,6 +2,7 @@ use super::SimulationCell;
 use super::EIGHT_CONNECTED_OFFSETS;
 use super::MAX_HYDRATION;
 use super::MOVE_FLAG_COPY;
+use super::MOVE_FLAG_IGNORE_WEIGHT;
 
 use godot::global::randi_range;
 
@@ -25,7 +26,7 @@ impl CellUpdate for MossSpread {
             for neighbor_idx in offset_indicies {
                 if neighbors[neighbor_idx].is_solid() {
                     this.set_velocity(EIGHT_CONNECTED_OFFSETS[neighbor_idx]);
-                    this.set_velocity_mode_type(MOVE_FLAG_COPY);
+                    this.set_velocity_mode_type(MOVE_FLAG_IGNORE_WEIGHT | MOVE_FLAG_COPY);
                     return;
                 }
             }
@@ -43,8 +44,8 @@ impl CellUpdate for MossSpread {
     }
 }
 
-impl MossSpread{
-    pub fn new() -> Self{
+impl MossSpread {
+    pub fn new() -> Self {
         Self { energy: 2 }
     }
 }

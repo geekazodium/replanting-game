@@ -3,11 +3,12 @@ use std::u16;
 use super::cell_update::CellUpdate;
 use super::SimulationCell;
 use super::EIGHT_CONNECTED_OFFSETS;
+use super::MOVE_FLAG_SWAP;
 
 #[derive(Clone, Copy, Debug)]
 pub struct CellSupport {
-    pub(crate) distance_from_solid_h: u16,
-    pub(crate) strength: u16,
+    distance_from_solid_h: u16,
+    strength: u16,
 }
 
 impl CellUpdate for CellSupport {
@@ -29,10 +30,23 @@ impl CellUpdate for CellSupport {
             let offset_indicies = [6, 6 + dir_bias, 6 - dir_bias];
             for index in offset_indicies {
                 if neighbors[index].get_weight() < this.get_weight() {
+                    this.set_velocity_mode_type(MOVE_FLAG_SWAP);
                     this.set_velocity(EIGHT_CONNECTED_OFFSETS[index]);
                     return;
                 }
             }
         }
+    }
+}
+
+impl CellSupport {
+    pub fn new(strength: u16) -> Self {
+        Self {
+            distance_from_solid_h: 0,
+            strength,
+        }
+    }
+    pub fn get_h_distance(&self) -> u16 {
+        self.distance_from_solid_h
     }
 }
