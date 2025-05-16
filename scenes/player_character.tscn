@@ -19,6 +19,7 @@ collision_layer = 4
 collision_mask = 0
 script = ExtResource("1_yfngl")
 lock_acceleration_timer = NodePath("Timer")
+metadata/_custom_type_script = "uid://cfiw1fsy6wj8u"
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="."]
 shape = SubResource("CapsuleShape2D_r1pwq")
@@ -58,7 +59,6 @@ shape = SubResource("CapsuleShape2D_42qaj")
 
 [node name="PlayerEnergy" type="Node" parent="."]
 script = ExtResource("5_uj7mf")
-current_energy = 1.0
-energy_loss_rate = 0.1
+current_energy = 5.0
 max_energy = 10.0
 metadata/_custom_type_script = "uid://bhqyk43hkdo7g"
