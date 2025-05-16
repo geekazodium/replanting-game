@@ -2,6 +2,5 @@
 rustflags = [
     "-C", "link-args=-sSIDE_MODULE=2",
     "-Zlink-native-libraries=no",
-    "-C", "target-feature=+bulk-memory",
     "-Cllvm-args=-enable-emscripten-cxx-exceptions=0",
 ]
