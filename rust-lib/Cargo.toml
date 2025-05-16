@@ -8,3 +8,6 @@ crate-type = ["cdylib"]  # Compile this crate to a dynamic C library.
 
 [dependencies]
 godot = {version = "0.2.4", features = ["experimental-wasm", "lazy-function-tables"]}
+
+[features]
+nothreads = ["godot/experimental-wasm-nothreads"]
