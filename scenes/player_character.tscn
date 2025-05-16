@@ -1,9 +1,10 @@
-[gd_scene load_steps=8 format=3 uid="uid://06qiyuoewaqf"]
+[gd_scene load_steps=9 format=3 uid="uid://06qiyuoewaqf"]
 
-[ext_resource type="Script" uid="uid://cfiw1fsy6wj8u" path="res://scripts/character_body_2d.gd" id="1_yfngl"]
-[ext_resource type="Script" uid="uid://bitp0isfs8yjp" path="res://scripts/player_input_direction.gd" id="2_uc2qu"]
-[ext_resource type="Script" uid="uid://i5tkmrq2lg3q" path="res://scripts/player_jump_input.gd" id="3_2n0x4"]
-[ext_resource type="Script" uid="uid://csg7k3vuihuqy" path="res://scripts/bouyancy_area.gd" id="4_8k45x"]
+[ext_resource type="Script" uid="uid://cfiw1fsy6wj8u" path="res://scripts/player/physics/character_body_2d.gd" id="1_yfngl"]
+[ext_resource type="Script" uid="uid://bitp0isfs8yjp" path="res://scripts/player/physics/player_input_direction.gd" id="2_uc2qu"]
+[ext_resource type="Script" uid="uid://i5tkmrq2lg3q" path="res://scripts/player/physics/player_jump_input.gd" id="3_2n0x4"]
+[ext_resource type="Script" uid="uid://csg7k3vuihuqy" path="res://scripts/player/physics/bouyancy_area.gd" id="4_8k45x"]
+[ext_resource type="Script" uid="uid://bhqyk43hkdo7g" path="res://scripts/player/resources/player_energy.gd" id="5_uj7mf"]
 
 [sub_resource type="CapsuleShape2D" id="CapsuleShape2D_r1pwq"]
 
@@ -34,11 +35,13 @@ move_right_action = "move_right"
 move_up_action = "move_up"
 move_down_action = "move_down"
 character_body = NodePath("..")
+metadata/_custom_type_script = "uid://bitp0isfs8yjp"
 
 [node name="PlayerJumpInput" type="Node" parent="." node_paths=PackedStringArray("character_body")]
 script = ExtResource("3_2n0x4")
 character_body = NodePath("..")
 jump_input = "jump"
+metadata/_custom_type_script = "uid://i5tkmrq2lg3q"
 
 [node name="Area2D" type="Area2D" parent="." node_paths=PackedStringArray("character_body")]
 collision_layer = 0
@@ -52,3 +55,10 @@ friction = 5.0
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="Area2D"]
 shape = SubResource("CapsuleShape2D_42qaj")
+
+[node name="PlayerEnergy" type="Node" parent="."]
+script = ExtResource("5_uj7mf")
+current_energy = 1.0
+energy_loss_rate = 0.1
+max_energy = 10.0
+metadata/_custom_type_script = "uid://bhqyk43hkdo7g"
