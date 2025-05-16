@@ -1,6 +1,5 @@
 use godot::global::randi_range;
 
-use super::cell_support::CellSupport;
 use super::cell_update::CellUpdate;
 use super::hydration::Hydration;
 use super::CellRules;
@@ -20,9 +19,8 @@ impl CellUpdate for TreeSpread {
     fn update(&mut self, neighbors: [&SimulationCell; 8], this: &mut SimulationCell) {
         if self.length > MAX_GROW_LENGTH {
             this.set_velocity(EIGHT_CONNECTED_OFFSETS[randi_range(0, 2) as usize]);
-            this.replace(CellRules::TreeTrunk {
+            this.replace(CellRules::TreeLeaves {
                 hydration: Hydration::new(),
-                support: CellSupport::new(10),
             });
             return;
         }
@@ -37,11 +35,28 @@ impl CellUpdate for TreeSpread {
         }
 
         if !(count <= 2) {
+            let mut above_count: u8 = 0;
+            for index in [0, 1, 2] {
+                let n = neighbors[index];
+                if n.cell_type_eq(&this) {
+                    above_count += 1;
+                }
+            }
+            if above_count > 0 {
+                return;
+            }
+        }
+
+        let index = randi_range(0, 2) as usize;
+
+        if neighbors[index].cell_type_eq_rules(CellRules::TreeLeaves {
+            hydration: Hydration::new(),
+        }) {
             return;
         }
 
-        this.set_velocity(EIGHT_CONNECTED_OFFSETS[randi_range(0, 2) as usize]);
-        self.length += 1;
+        this.set_velocity(EIGHT_CONNECTED_OFFSETS[index]);
+        self.length += randi_range(1, 2) as u8;
         this.set_velocity_mode_type(MOVE_FLAG_COPY);
     }
 }

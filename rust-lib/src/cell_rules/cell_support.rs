@@ -39,6 +39,7 @@ impl CellUpdate for CellSupport {
     }
 }
 
+#[allow(unused)]
 impl CellSupport {
     pub fn new(strength: u16) -> Self {
         Self {

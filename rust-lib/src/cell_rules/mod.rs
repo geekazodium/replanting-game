@@ -1,4 +1,3 @@
-use cell_support::CellSupport;
 use godot::builtin::Vector2i;
 use hydration::Hydration;
 use moss_spread::MossSpread;
@@ -116,9 +115,8 @@ pub enum CellRules {
         hydration: Hydration,
         tree: TreeSpread,
     },
-    TreeTrunk {
+    TreeLeaves {
         hydration: Hydration,
-        support: CellSupport,
     },
 }
 
@@ -143,10 +141,7 @@ impl CellRules {
                 hydration: _,
                 tree: _,
             } => 5,
-            Self::TreeTrunk {
-                hydration: _,
-                support: _,
-            } => 6,
+            Self::TreeLeaves { hydration: _ } => 6,
         }
     }
     pub fn can_set(&self) -> bool {
@@ -168,10 +163,7 @@ impl CellRules {
                 hydration: _,
                 tree: _,
             } => 127,
-            Self::TreeTrunk {
-                hydration: _,
-                support: _,
-            } => 120,
+            Self::TreeLeaves { hydration: _ } => 120,
             Self::Empty => 50,
         }
     }
@@ -189,10 +181,7 @@ impl CellRules {
                 hydration: _,
                 tree: _,
             } => Vector2i { x: 4, y: 0 },
-            Self::TreeTrunk {
-                hydration: _,
-                support: _,
-            } => Vector2i { x: 5, y: 0 },
+            Self::TreeLeaves { hydration: _ } => Vector2i { x: 5, y: 0 },
         }
     }
     pub fn from_atlas_coords(coord: Vector2i) -> Self {
@@ -212,9 +201,8 @@ impl CellRules {
                 hydration: Hydration::new(),
                 tree: TreeSpread::new(),
             },
-            5 => Self::TreeTrunk {
+            5 => Self::TreeLeaves {
                 hydration: Hydration::new(),
-                support: CellSupport::new(3),
             },
             _default => Self::ForceEmpty,
         }
@@ -247,9 +235,8 @@ impl CellRules {
                 hydration.update(neighbors, this_cell);
                 tree.update(neighbors, this_cell);
             }
-            Self::TreeTrunk { hydration, support } => {
+            Self::TreeLeaves { hydration } => {
                 hydration.update(neighbors, this_cell);
-                support.update(neighbors, this_cell);
             }
             _default => {
                 return;
@@ -268,19 +255,12 @@ impl CellRules {
                 }
             }
             Self::TreeSpread { hydration, tree: _ } => hydration.get(),
-            Self::TreeTrunk {
-                hydration,
-                support: _,
-            } => hydration.get(),
+            Self::TreeLeaves { hydration } => hydration.get(),
             _default => 0,
         }
     }
     pub fn get_support_distance_h(&self) -> u16 {
         match self {
-            Self::TreeTrunk {
-                hydration: _,
-                support,
-            } => support.get_h_distance(),
             Self::StaticCell { hydration: _ } => 0,
             _default => u16::MAX,
         }
