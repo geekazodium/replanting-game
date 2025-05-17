@@ -93,6 +93,9 @@ impl SimulationCell {
     pub fn to_atlas_coords(&self) -> Vector2i {
         self.rules.to_atlas_coords()
     }
+    pub fn get_energy_generation(&self) -> f64 {
+        self.rules.get_energy_generation()
+    }
 }
 
 mod tile_velocity_wrapper;
@@ -148,6 +151,13 @@ impl CellRules {
         match self {
             Self::ForceEmpty => false,
             _default => true,
+        }
+    }
+    pub fn get_energy_generation(&self) -> f64{
+        match self{
+            Self::Moss { hydration: _, moss: _ } => 1.,
+            Self::TreeLeaves { hydration: _ } => 1.5,
+            _default => 0.
         }
     }
     pub fn get_weight(&self) -> u8 {

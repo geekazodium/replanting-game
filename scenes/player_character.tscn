@@ -60,5 +60,7 @@ shape = SubResource("CapsuleShape2D_42qaj")
 [node name="PlayerEnergy" type="Node" parent="."]
 script = ExtResource("5_uj7mf")
 current_energy = 5.0
+energy_loss_rate = 0.05
 max_energy = 10.0
+energy_generation_rate = 0.01
 metadata/_custom_type_script = "uid://bhqyk43hkdo7g"

@@ -7,6 +7,9 @@ func _ready() -> void:
 	EventBus.place_tile_attempt.connect(self.place_tile);
 	EventBus.break_tile_attempt.connect(self.break_tile);
 
+func _physics_process(delta: float) -> void:
+	EventBus.energy_generated.emit(self.cell_layer.get_energy_generation() / 100 * delta);
+
 func place_tile(global_pos: Vector2, atlas_coords: Vector2i) -> void:
 	var tile_pos: Vector2i = self.tile_from_global_pos(global_pos);
 	if !self.cell_layer.is_tile_solid(tile_pos):

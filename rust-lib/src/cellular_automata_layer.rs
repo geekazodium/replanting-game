@@ -65,6 +65,14 @@ impl CellularAutomataLayer {
     fn is_tile_solid(&mut self, position: Vector2i) -> bool {
         self.cell_data.get(position).is_solid()
     }
+    #[func]
+    fn get_energy_generation(&mut self) -> f64{
+        let mut amount: f64 = 0.;
+        for c in self.cell_data.into_iter(){
+            amount += c.get_energy_generation();
+        }
+        amount
+    }
 }
 
 impl CellularAutomataLayer {
@@ -304,5 +312,14 @@ impl CellDataWrapper {
     }
     fn get_position_hash(pos: Vector2i) -> i32 {
         pos.x ^ (pos.y << 16)
+    }
+}
+
+impl<'a> IntoIterator for &'a CellDataWrapper{
+    type IntoIter = std::slice::Iter<'a,SimulationCell>;
+    type Item = &'a SimulationCell;
+
+    fn into_iter(self) -> Self::IntoIter {
+        self.data.iter()
     }
 }

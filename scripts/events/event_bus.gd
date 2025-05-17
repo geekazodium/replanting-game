@@ -3,6 +3,7 @@ extends Node
 #region Tile Set Events
 signal break_tile_attempt(global_position: Vector2);
 signal place_tile_attempt(global_position: Vector2, atlas_coords: Vector2i);
+signal energy_generated(amount: float);
 #endregion
 
 #region Player Stats Events
