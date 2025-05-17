@@ -49,15 +49,15 @@ jobs:
       run: |
         git clone https://github.com/emscripten-core/emsdk.git
         cd emsdk
-        ./emsdk install 3.1.39
-        ./emsdk activate 3.1.39
+        ./emsdk install 3.1.62
+        ./emsdk activate 3.1.62
     - name: Build
       run: |
         cd emsdk
         source "emsdk_env.sh"
         cd ../
         cd rust-lib
-        cargo +nightly build --features nothreads -Zbuild-std --target wasm32-unknown-emscripten --verbose --release
+        cargo +nightly build --features nothreads -Zbuild-std --target wasm32-unknown-emscripten --verbose
     - name: Run tests
       run: |
         cd rust-lib
