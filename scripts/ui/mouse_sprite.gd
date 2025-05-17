@@ -1,4 +1,5 @@
 extends Sprite2D
+class_name PlaceTileCursor
 
 @export var place_tile_button: StringName = "";
 @export var break_tile_button: StringName = "";
