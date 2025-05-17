@@ -24,6 +24,7 @@ scale = Vector2(0.063, 0.063)
 texture = ExtResource("2_oet0x")
 script = ExtResource("3_3ac5y")
 place_tile_button = &"place_tile"
+break_tile_button = &"break_tile"
 
 [node name="CharacterBody2D" parent="." instance=ExtResource("4_57udp")]
 position = Vector2(-848, 469)

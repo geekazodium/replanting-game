@@ -51,7 +51,7 @@ impl SimulationCell {
             self.rules = rules;
         }
     }
-    fn is_solid(&self) -> bool {
+    pub fn is_solid(&self) -> bool {
         self.rules.is_solid()
     }
     pub fn get_weight(&self) -> u8 {
@@ -210,6 +210,7 @@ impl CellRules {
     pub fn is_solid(&self) -> bool {
         match self {
             Self::StaticCell { hydration: _ } => true,
+            Self::TreeLeaves { hydration: _ } => true,
             Self::Moss {
                 hydration: _,
                 moss: _,

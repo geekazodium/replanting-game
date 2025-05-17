@@ -61,6 +61,10 @@ impl CellularAutomataLayer {
             SimulationCell::new(CellRules::from_atlas_coords(tile_src_pos)),
         );
     }
+    #[func]
+    fn is_tile_solid(&mut self, position: Vector2i) -> bool {
+        self.cell_data.get(position).is_solid()
+    }
 }
 
 impl CellularAutomataLayer {
