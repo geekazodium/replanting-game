@@ -37,15 +37,15 @@ env:
 
 jobs:
   build-rust-wasm32:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     steps:
     - uses: actions/checkout@v4
     - name: setup emsdk
       run: |
         git clone https://github.com/emscripten-core/emsdk.git
         cd emsdk
-        ./emsdk install 3.1.62
-        ./emsdk activate 3.1.62
+        ./emsdk install 3.1.73
+        ./emsdk activate 3.1.73
     - name: setup nightly toolchain
       run: |
         rustup toolchain install nightly
