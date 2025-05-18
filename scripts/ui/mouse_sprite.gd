@@ -8,9 +8,8 @@ class_name PlaceTileCursor
 @export var minimum_distance: float = 20;
 
 func _physics_process(_delta: float) -> void:
-	self.global_position = floor(self.get_global_mouse_position() / tile_size) * tile_size + Vector2.ONE * 4;
-	
-	self.global_position = self.reachable_raycast.get_reachable_global_pos(self.position,true);
+	var mouse_pos: Vector2 = self.get_global_mouse_position() - self.reachable_raycast.global_position;
+	self.global_position = self.reachable_raycast.get_reachable_global_pos(mouse_pos,true);
 	
 	if Input.is_action_pressed(self.place_tile_button):
 		var _position: Vector2 = self.reachable_raycast.get_reachable_global_pos(self.position);
