@@ -53,6 +53,12 @@ jobs:
       with:
         targets: wasm32-unknown-emscripten
 
+    - name: Install Nightly
+      run: |
+        rustup toolchain install nightly
+        rustup component add rust-src --toolchain nightly
+        rustup target add wasm32-unknown-emscripten --toolchain nightly
+
     - name: Verify Emscripten
       run: emcc -v
 
