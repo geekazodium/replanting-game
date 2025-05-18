@@ -46,7 +46,6 @@ jobs:
         cd emsdk
         ./emsdk install 3.1.62
         ./emsdk activate 3.1.62
-        echo 'source "./emsdk_env.sh"' >> $HOME/.bash_profile
     - name: setup nightly toolchain
       run: |
         rustup toolchain install nightly
@@ -54,8 +53,9 @@ jobs:
         rustup target add wasm32-unknown-emscripten --toolchain nightly
     - name: Build
       run: |
+        source "./emsdk/emsdk_env.sh"
         cd rust-lib
-        cargo +nightly build --features nothreads -Zbuild-std --target wasm32-unknown-emscripten --verbose
+        cargo +nightly build --features nothreads -Zbuild-std --target wasm32-unknown-emscripten --verbose --release
     - name: Run tests
       run: |
         cd rust-lib
