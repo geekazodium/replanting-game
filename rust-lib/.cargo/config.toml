@@ -3,5 +3,6 @@ rustflags = [
     "-C", "link-args=-sSIDE_MODULE=2",
     "-Zlink-native-libraries=no",
     "-Cllvm-args=-enable-emscripten-cxx-exceptions=0",
-    "-C", "target-feature=-bulk-memory"
+    "-C", "target-feature=+bulk-memory",
+    "-C", "target-feature=+mutable-globals"
 ]
