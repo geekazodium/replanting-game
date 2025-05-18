@@ -1,0 +1,114 @@
+# MIT License
+
+# Copyright (c) 2018 BARICHELLO
+
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+
+# The above copyright notice and this permission notice shall be included in all
+# copies or substantial portions of the Software.
+
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+# SOFTWARE.
+
+name: 'Godot CI'
+on: 
+  push:
+    branches: 
+      - main
+
+# NOTE: If your `project.godot` is at the repository root, set `PROJECT_PATH` below to ".".
+permissions:
+  contents: write
+
+env:
+  GODOT_VERSION: 4.4.1
+  EXPORT_NAME: balance-prototype
+  PROJECT_PATH: ./
+
+jobs:
+  build-rust-wasm32:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    - name: setup nightly toolchain
+      run: |
+        rustup toolchain install nightly
+        rustup component add rust-src --toolchain nightly
+        rustup target add wasm32-unknown-emscripten --toolchain nightly
+    - name: setup emsdk
+      run: |
+        git clone https://github.com/emscripten-core/emsdk.git
+        cd emsdk
+        ./emsdk install 3.1.62
+        ./emsdk activate 3.1.62
+        source ./emsdk.sh
+    - name: Build
+      run: |
+        cd emsdk
+        source "emsdk_env.sh"
+        source ./emsdk.sh
+        cd ../
+        cd rust-lib
+        cargo +nightly build --features nothreads -Zbuild-std --target wasm32-unknown-emscripten --verbose
+    - name: Run tests
+      run: |
+        cd rust-lib
+        cargo test --verbose
+    - name: upload rust-lib
+      uses: actions/upload-artifact@v4
+      with:
+        name: rust-lib
+        path: ./rust-lib/target/wasm32-unknown-emscripten/debug/rust_lib.wasm
+    
+  export-web:
+    name: Web Export
+    needs: build-rust-wasm32
+    runs-on: ubuntu-22.04  # Use 22.04 with godot 4
+    container:
+      image: barichello/godot-ci:4.4.1
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          lfs: true
+      - name: Setup
+        run: |
+          mkdir -v -p ~/.local/share/godot/export_templates/
+          mv /root/.local/share/godot/export_templates/${GODOT_VERSION}.stable ~/.local/share/godot/export_templates/${GODOT_VERSION}.stable
+      - name: Pull rust-lib
+        uses: actions/download-artifact@v4
+        with:
+          name: rust-lib
+      - name: Move rust-lib
+        run: |
+          mkdir -p ./rust-lib/target/wasm32-unknown-emscripten/release/
+          mv ./rust_lib.wasm ./rust-lib/target/wasm32-unknown-emscripten/release/rust_lib.
+      - name: Web Build
+        run: |
+          mkdir -v -p build/web
+          EXPORT_DIR="$(readlink -f build)"
+          cd $PROJECT_PATH
+          godot --headless --verbose --export-release "Web" "$EXPORT_DIR/web/index.html"
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: web
+          path: build/web
+      - name: Install rsync 📚
+        run: |
+          apt-get update && apt-get install -y rsync
+      - name: Deploy to GitHub Pages 🚀
+        uses: JamesIves/github-pages-deploy-action@releases/v4
+        with:
+          branch: gh-pages # The branch the action should deploy to.
+          folder: build/web # The folder the action should deploy.
