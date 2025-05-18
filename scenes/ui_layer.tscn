@@ -1,7 +1,8 @@
-[gd_scene load_steps=3 format=3 uid="uid://dgiypkqurlrf5"]
+[gd_scene load_steps=4 format=3 uid="uid://dgiypkqurlrf5"]
 
 [ext_resource type="Script" uid="uid://c2l1wcyhqane3" path="res://scripts/ui/player_energy_progress_bar.gd" id="1_w83ab"]
 [ext_resource type="Script" uid="uid://dgbqnmqaxuj0m" path="res://scripts/ui/game_over_menu_container.gd" id="2_bkwom"]
+[ext_resource type="Script" uid="uid://bkqpaeolp75pm" path="res://scripts/ui/new_day_menu_container.gd" id="3_6av8n"]
 
 [node name="UiLayer" type="CanvasLayer"]
 
@@ -42,5 +43,29 @@ layout_mode = 2
 [node name="Button" type="Button" parent="GameOverMenuContainer"]
 layout_mode = 2
 text = "TRY AGAIN?"
+
+[node name="NewDayMenuContainer" type="VBoxContainer" parent="."]
+process_mode = 2
+visible = false
+anchors_preset = -1
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 129.0
+offset_top = 129.0
+offset_right = -129.0
+offset_bottom = -129.0
+grow_horizontal = 2
+grow_vertical = 2
+size_flags_horizontal = 4
+size_flags_vertical = 4
+script = ExtResource("3_6av8n")
+
+[node name="KeepPlanting" type="Button" parent="NewDayMenuContainer"]
+layout_mode = 2
+text = "Keep planting your current plant."
+
+[node name="AttemptResurrection" type="Button" parent="NewDayMenuContainer"]
+layout_mode = 2
+text = "Attept to resurrect a new plant."
 
 [connection signal="pressed" from="GameOverMenuContainer/Button" to="GameOverMenuContainer" method="_on_retry"]

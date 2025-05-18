@@ -1,4 +1,4 @@
-[gd_scene load_steps=9 format=4 uid="uid://brii0dbf0eh4q"]
+[gd_scene load_steps=12 format=4 uid="uid://brii0dbf0eh4q"]
 
 [ext_resource type="TileSet" uid="uid://cfo61p2gvnvvh" path="res://resources/tiles/world_tileset.tres" id="1_a6fml"]
 [ext_resource type="Texture2D" uid="uid://c8fn5c8q2qw4h" path="res://resources/icon.svg" id="2_oet0x"]
@@ -8,6 +8,14 @@
 [ext_resource type="PackedScene" uid="uid://dgiypkqurlrf5" path="res://scenes/ui_layer.tscn" id="5_6ak8i"]
 [ext_resource type="Script" uid="uid://c65rhuy20ubru" path="res://scripts/player/physics/player_reachable_raycast.gd" id="6_b5spy"]
 [ext_resource type="Script" uid="uid://rjopr7uly4h2" path="res://scripts/world/time/game_world_time.gd" id="7_kk2rg"]
+[ext_resource type="Script" uid="uid://b6bhrqejxcqbq" path="res://scripts/player/resources/player_plantable_types.gd" id="7_utbpp"]
+[ext_resource type="Script" uid="uid://curc35y3uemo8" path="res://scripts/player/resources/plant_type.gd" id="8_mw25s"]
+
+[sub_resource type="Resource" id="Resource_tcjrq"]
+script = ExtResource("8_mw25s")
+energy_cost = 2.0
+tileset_coords = Vector2i(4, 0)
+metadata/_custom_type_script = "uid://curc35y3uemo8"
 
 [node name="GameScene" type="Node2D"]
 
@@ -52,8 +60,15 @@ collision_mask = 2
 script = ExtResource("6_b5spy")
 metadata/_custom_type_script = "uid://c65rhuy20ubru"
 
+[node name="PlantTypes" type="Node" parent="CharacterBody2D"]
+script = ExtResource("7_utbpp")
+plant_types = Dictionary[StringName, ExtResource("8_mw25s")]({
+&"Tree": SubResource("Resource_tcjrq")
+})
+
 [node name="UiLayer" parent="." instance=ExtResource("5_6ak8i")]
 
 [node name="GameWorldTime" type="Node" parent="."]
 script = ExtResource("7_kk2rg")
+day_duration_seconds = 10.0
 metadata/_custom_type_script = "uid://rjopr7uly4h2"
