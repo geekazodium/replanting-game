@@ -44,13 +44,14 @@ jobs:
       run: |
         git clone https://github.com/emscripten-core/emsdk.git
         cd emsdk
-        ./emsdk install 3.1.73
-        ./emsdk activate 3.1.73
+        ./emsdk install 3.1.62
+        ./emsdk activate 3.1.62
     - name: setup nightly toolchain
       run: |
         rustup toolchain install nightly
         rustup component add rust-src --toolchain nightly
         rustup target add wasm32-unknown-emscripten --toolchain nightly
+        rustup update
     - name: Build
       run: |
         source "./emsdk/emsdk_env.sh"
