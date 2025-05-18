@@ -66,7 +66,7 @@ jobs:
       run: cargo +nightly build --features nothreads -Zbuild-std --target wasm32-unknown-emscripten --release
       working-directory: ./rust-lib
       env: 
-        RUSTFLAGS: -C link-args=-sSIDE_MODULE=2,-sASSERTIONS=1 -C target-feature=+atomics,+bulk-memory,+mutable-globals -Zlink-native-libraries=no -Cllvm-args=-enable-emscripten-cxx-exceptions=0
+        RUSTFLAGS: -C link-args=-sSIDE_MODULE=2 -C link-args=-sASSERTIONS=1 -C target-feature=+atomics,+bulk-memory,+mutable-globals -Zlink-native-libraries=no -Cllvm-args=-enable-emscripten-cxx-exceptions=0
 
     - name: upload rust-lib
       uses: actions/upload-artifact@v4
