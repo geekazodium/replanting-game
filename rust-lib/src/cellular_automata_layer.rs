@@ -207,7 +207,7 @@ impl CellularAutomataLayer {
     }
 
     fn get_visible_tile_area(&self) -> Rect2i {
-        let camera = self.camera.as_ref().expect("no camera set");
+        let camera:Gd<Camera2D> = self.get_camera().unwrap();
         let camera_rect = camera.get_viewport_rect();
         let mut position = camera.get_global_position();
         let mut size = camera_rect.size;
