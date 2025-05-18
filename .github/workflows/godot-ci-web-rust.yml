@@ -67,7 +67,7 @@ jobs:
       working-directory: ./rust-lib
       env: 
         RUSTFLAGS: -C link-args=-sSIDE_MODULE=2 -C target-feature=+atomics,+bulk-memory,+mutable-globals -Zlink-native-libraries=no -Cllvm-args=-enable-emscripten-cxx-exceptions=0
-        
+
     - name: upload rust-lib
       uses: actions/upload-artifact@v4
       with:
@@ -96,7 +96,7 @@ jobs:
       - name: Move rust-lib
         run: |
           mkdir -p ./rust-lib/target/wasm32-unknown-emscripten/release/
-          mv ./rust_lib.wasm ./rust-lib/target/wasm32-unknown-emscripten/release/rust_lib.
+          mv ./rust_lib.wasm ./rust-lib/target/wasm32-unknown-emscripten/release/rust_lib.wasm
       - name: Web Build
         run: |
           mkdir -v -p build/web
