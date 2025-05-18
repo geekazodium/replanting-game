@@ -11,16 +11,16 @@
 [ext_resource type="Script" uid="uid://b6bhrqejxcqbq" path="res://scripts/player/resources/player_plantable_types.gd" id="7_utbpp"]
 [ext_resource type="Script" uid="uid://curc35y3uemo8" path="res://scripts/player/resources/plant_type.gd" id="8_mw25s"]
 
-[sub_resource type="Resource" id="Resource_tcjrq"]
-script = ExtResource("8_mw25s")
-energy_cost = 2.0
-tileset_coords = Vector2i(4, 0)
-metadata/_custom_type_script = "uid://curc35y3uemo8"
-
 [sub_resource type="Resource" id="Resource_mw25s"]
 script = ExtResource("8_mw25s")
 energy_cost = 0.5
 tileset_coords = Vector2i(3, 0)
+metadata/_custom_type_script = "uid://curc35y3uemo8"
+
+[sub_resource type="Resource" id="Resource_tcjrq"]
+script = ExtResource("8_mw25s")
+energy_cost = 2.0
+tileset_coords = Vector2i(4, 0)
 metadata/_custom_type_script = "uid://curc35y3uemo8"
 
 [node name="GameScene" type="Node2D"]
