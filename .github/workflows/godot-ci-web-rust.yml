@@ -49,13 +49,11 @@ jobs:
         actions-cache-folder: "emsdk-cache"
 
     - name: Install Nightly
-      if: matrix.release_for == 'web-wasm32'
       uses: dtolnay/rust-toolchain@nightly
       with:
         targets: wasm32-unknown-emscripten
 
     - name: Verify Emscripten
-      if: matrix.release_for == 'web-wasm32'
       run: emcc -v
 
     - name: build rust
