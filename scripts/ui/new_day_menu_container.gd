@@ -7,4 +7,3 @@ func _ready() -> void:
 func on_day_end() -> void:
 	self.visible = true;
 	self.get_tree().paused = true;
-	if self.
