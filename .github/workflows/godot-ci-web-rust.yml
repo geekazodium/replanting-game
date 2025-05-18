@@ -39,24 +39,31 @@ jobs:
   build-rust-wasm32:
     runs-on: ubuntu-latest
     steps:
+
+    #code stolen from https://github.com/deltasiege/godot-rapier-3d/blob/9c26657e074d2b09ec3e2323ceac3c2ddf8603a4/.github/workflows/jobs-build.yml
     - uses: actions/checkout@v4
-    - name: setup emsdk
-      run: |
-        git clone https://github.com/emscripten-core/emsdk.git
-        cd emsdk
-        ./emsdk install 3.1.39
-        ./emsdk activate 3.1.39
-    - name: setup nightly toolchain
+    - uses: mymindstorm/setup-emsdk@v14
+      with:
+        version: 3.1.74
+        no-cache: true
+        actions-cache-folder: "emsdk-cache"
+
+    - name: Install Nightly
+      if: matrix.release_for == 'web-wasm32'
+      uses: dtolnay/rust-toolchain@nightly
+      with:
+        targets: wasm32-unknown-emscripten
+
+    - name: Install Nightly
       run: |
         rustup toolchain install nightly
         rustup component add rust-src --toolchain nightly
-        rustup target add wasm32-unknown-emscripten --toolchain nightly
-        rustup update
-    - name: Build
-      run: |
-        source "./emsdk/emsdk_env.sh"
-        cd rust-lib
-        cargo +nightly build --features nothreads -Zbuild-std --target wasm32-unknown-emscripten --verbose --release
+        rustup target add  --toolchain nightly
+
+    - name: Verify Emscripten
+      if: matrix.release_for == 'web-wasm32'
+      run: emcc -v
+
     - name: Run tests
       run: |
         cd rust-lib
