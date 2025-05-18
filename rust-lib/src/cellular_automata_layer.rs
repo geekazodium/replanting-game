@@ -3,13 +3,11 @@ use std::collections::HashSet;
 
 use godot::builtin::Rect2i;
 use godot::builtin::Vector2i;
-use godot::classes::Camera2D;
 use godot::classes::ITileMapLayer;
 use godot::classes::TileMapLayer;
 use godot::global::godot_error;
 use godot::global::randi_range;
 use godot::obj::Base;
-use godot::obj::Gd;
 use godot::obj::WithBaseField;
 use godot::prelude::godot_api;
 use godot::prelude::GodotClass;
@@ -23,8 +21,6 @@ use crate::cell_rules::SimulationCell;
 struct CellularAutomataLayer {
     base: Base<TileMapLayer>,
     cell_data: CellDataWrapper,
-    #[export]
-    camera: Option<Gd<Camera2D>>,
     last_visible_area: Rect2i,
 }
 
@@ -37,7 +33,6 @@ impl ITileMapLayer for CellularAutomataLayer {
                 vec![],
                 Rect2i::new(Vector2i::new(0, 0), Vector2i::new(0, 0)),
             ),
-            camera: None,
             last_visible_area: Rect2i::new(Vector2i::ZERO, Vector2i::ZERO),
         }
     }
@@ -207,7 +202,14 @@ impl CellularAutomataLayer {
     }
 
     fn get_visible_tile_area(&self) -> Rect2i {
-        let camera= self.camera.as_ref().expect("no camera set");
+        let self_viewport = self.base().get_viewport();
+        if self_viewport.is_none(){
+            return Rect2i::new(
+                Vector2i::new(0, 0), 
+                Vector2i::new(0, 0)
+            );
+        }
+        let camera= self_viewport.unwrap().get_camera_2d().unwrap();
         let camera_rect = camera.get_viewport_rect();
         let mut position = camera.get_global_position();
         let mut size = camera_rect.size;
