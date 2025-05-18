@@ -207,10 +207,6 @@ impl CellularAutomataLayer {
     }
 
     fn get_visible_tile_area(&self) -> Rect2i {
-        return Rect2i::new(
-            Vector2i::new(0,0),
-            Vector2i::new(30, 30),
-        );
         let camera= self.camera.as_ref().expect("no camera set");
         let camera_rect = camera.get_viewport_rect();
         let mut position = camera.get_global_position();
