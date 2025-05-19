@@ -1,8 +1,10 @@
-[gd_scene load_steps=4 format=3 uid="uid://dgiypkqurlrf5"]
+[gd_scene load_steps=6 format=3 uid="uid://dgiypkqurlrf5"]
 
 [ext_resource type="Script" uid="uid://c2l1wcyhqane3" path="res://scripts/ui/player_energy_progress_bar.gd" id="1_w83ab"]
 [ext_resource type="Script" uid="uid://dgbqnmqaxuj0m" path="res://scripts/ui/game_over_menu_container.gd" id="2_bkwom"]
 [ext_resource type="Script" uid="uid://bkqpaeolp75pm" path="res://scripts/ui/new_day_menu_container.gd" id="3_6av8n"]
+[ext_resource type="Script" uid="uid://opt2ohgf12fb" path="res://scripts/ui/player_hotbar.gd" id="4_6syxi"]
+[ext_resource type="PackedScene" uid="uid://bk3xtr7nw06g4" path="res://scenes/ui/hotbar_button.tscn" id="5_d4ycy"]
 
 [node name="UiLayer" type="CanvasLayer"]
 
@@ -67,6 +69,19 @@ text = "Keep planting your current plant."
 [node name="AttemptResurrection" type="Button" parent="NewDayMenuContainer"]
 layout_mode = 2
 text = "Attept to resurrect a new plant."
+
+[node name="ScrollContainer" type="ScrollContainer" parent="."]
+offset_left = 64.0
+offset_top = 569.0
+offset_right = 1088.0
+offset_bottom = 648.0
+
+[node name="PlayerHotbar" type="HBoxContainer" parent="ScrollContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+script = ExtResource("4_6syxi")
+button_scene = ExtResource("5_d4ycy")
 
 [connection signal="pressed" from="GameOverMenuContainer/Button" to="GameOverMenuContainer" method="_on_retry"]
 [connection signal="pressed" from="NewDayMenuContainer/KeepPlanting" to="NewDayMenuContainer" method="_on_keep_planting_pressed"]

@@ -5,7 +5,7 @@
 [ext_resource type="Script" uid="uid://dkviukv6j2mkk" path="res://scripts/world/celluar_automata_interaction_link.gd" id="2_rurhu"]
 [ext_resource type="Script" uid="uid://cbo3osejqeo0d" path="res://scripts/ui/mouse_sprite.gd" id="3_3ac5y"]
 [ext_resource type="PackedScene" uid="uid://06qiyuoewaqf" path="res://scenes/player_character.tscn" id="4_57udp"]
-[ext_resource type="PackedScene" uid="uid://dgiypkqurlrf5" path="res://scenes/ui_layer.tscn" id="5_6ak8i"]
+[ext_resource type="PackedScene" uid="uid://dgiypkqurlrf5" path="res://scenes/ui/ui_layer.tscn" id="5_6ak8i"]
 [ext_resource type="Script" uid="uid://c65rhuy20ubru" path="res://scripts/player/physics/player_reachable_raycast.gd" id="6_b5spy"]
 [ext_resource type="Script" uid="uid://rjopr7uly4h2" path="res://scripts/world/time/game_world_time.gd" id="7_kk2rg"]
 

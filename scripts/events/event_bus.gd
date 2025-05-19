@@ -18,6 +18,13 @@ signal day_end();
 #region Player New Day Choice Event
 signal day_end_player_choice_made(attempt_resurrect: bool);
 signal plant_resurrect_success(plant_name: StringName, plant_type: PlantType);
+signal game_ended();
 #endregion
 
+#region Player Hotbar Events
+signal player_hotbar_item_selected(item: StringName);
+signal player_hotbar_updated(items: Array[StringName]);
+#endregion
+
+signal player_plant_type_chosen(plant_type: PlantType);
 @warning_ignore_restore("unused_signal")

@@ -1,0 +1,7 @@
+[gd_scene load_steps=2 format=3 uid="uid://bk3xtr7nw06g4"]
+
+[ext_resource type="Script" uid="uid://dpatnkle8yunh" path="res://scripts/ui/hotbar_button.gd" id="1_j61db"]
+
+[node name="HotbarButton" type="Button"]
+focus_mode = 0
+script = ExtResource("1_j61db")
