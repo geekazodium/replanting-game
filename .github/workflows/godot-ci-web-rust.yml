@@ -40,7 +40,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
 
-    #code stolen from https://github.com/deltasiege/godot-rapier-3d/blob/9c26657e074d2b09ec3e2323ceac3c2ddf8603a4/.github/workflows/jobs-build.yml
+    #code taken from https://github.com/deltasiege/godot-rapier-3d/blob/9c26657e074d2b09ec3e2323ceac3c2ddf8603a4/.github/workflows/jobs-build.yml
     - uses: actions/checkout@v4
     - uses: mymindstorm/setup-emsdk@v14
       with:
@@ -66,13 +66,32 @@ jobs:
       run: cargo +nightly build --features nothreads -Zbuild-std --target wasm32-unknown-emscripten --release
       working-directory: ./rust-lib
       env: 
-        RUSTFLAGS: -C link-args=-sSIDE_MODULE=2 -C target-feature=+mutable-globals -Zlink-native-libraries=no -Cllvm-args=-enable-emscripten-cxx-exceptions=0
+        RUSTFLAGS: -C link-args=-sSIDE_MODULE=2 -C target-feature=+bulk-memory,+mutable-globals -Zlink-native-libraries=no -Cllvm-args=-enable-emscripten-cxx-exceptions=0
+    # borrowed code end
+    - name: upload rust-lib
+      uses: actions/upload-artifact@v4
+      with:
+        name: rust-lib-wasm32
+        path: ./rust-lib/target/wasm32-unknown-emscripten/release/rust_lib.wasm
+    
+  build-rust-linux:
+    runs-on: ubuntu-latest
+    steps:
+
+    - name: Install Stable
+      uses: dtolnay/rust-toolchain@stable
+      with:
+        targets: x86_64-unknown-linux-gnu
+
+    - name: build rust
+      run: cargo build --release
+      working-directory: ./rust-lib
 
     - name: upload rust-lib
       uses: actions/upload-artifact@v4
       with:
-        name: rust-lib
-        path: ./rust-lib/target/wasm32-unknown-emscripten/release/rust_lib.wasm
+        name: rust-lib-linux-build-only
+        path: ./rust-lib/target/release/librust_lib.so
     
   export-web:
     name: Web Export
@@ -89,14 +108,22 @@ jobs:
         run: |
           mkdir -v -p ~/.local/share/godot/export_templates/
           mv /root/.local/share/godot/export_templates/${GODOT_VERSION}.stable ~/.local/share/godot/export_templates/${GODOT_VERSION}.stable
-      - name: Pull rust-lib
+      - name: Pull rust-lib-wasm32
         uses: actions/download-artifact@v4
         with:
-          name: rust-lib
-      - name: Move rust-lib
+          name: rust-lib-wasm32
+      - name: Move rust-lib-wasm32
         run: |
           mkdir -p ./rust-lib/target/wasm32-unknown-emscripten/release/
           mv ./rust_lib.wasm ./rust-lib/target/wasm32-unknown-emscripten/release/rust_lib.wasm
+      - name: Pull rust-lib-linux-build-only
+        uses: actions/download-artifact@v4
+        with:
+          name: rust-lib-linux-build-only
+      - name: Move rust-lib-linux-build-only
+        run: |
+          mkdir -p ./rust-lib/target/release
+          mv ./librust_lib.so ./rust-lib/target/release/librust_lib.so
       - name: Web Build
         run: |
           mkdir -v -p build/web
