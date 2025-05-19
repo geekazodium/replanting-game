@@ -69,3 +69,5 @@ layout_mode = 2
 text = "Attept to resurrect a new plant."
 
 [connection signal="pressed" from="GameOverMenuContainer/Button" to="GameOverMenuContainer" method="_on_retry"]
+[connection signal="pressed" from="NewDayMenuContainer/KeepPlanting" to="NewDayMenuContainer" method="_on_keep_planting_pressed"]
+[connection signal="pressed" from="NewDayMenuContainer/AttemptResurrection" to="NewDayMenuContainer" method="_on_attempt_resurrection_pressed"]
