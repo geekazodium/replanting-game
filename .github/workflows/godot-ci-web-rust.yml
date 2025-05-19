@@ -86,6 +86,7 @@ jobs:
     - name: Install Nightly
       run: |
         rustup toolchain install
+        rustup component add rust-src --toolchain
 
     - name: build rust
       run: cargo build --release
