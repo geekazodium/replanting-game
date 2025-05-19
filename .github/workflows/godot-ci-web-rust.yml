@@ -86,7 +86,6 @@ jobs:
     - name: Install Stable
       run: |
         rustup toolchain install
-        rustup component add rust-src --toolchain stable
         rustup target add x86_64-unknown-linux-gnu stable
 
     - name: build rust
