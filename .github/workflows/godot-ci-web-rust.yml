@@ -1,6 +1,6 @@
 # MIT License
 
-# Copyright (c) 2018 BARICHELLO
+# Copyright (c) 2018 BARICHELLO, LokiMcKay
 
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -39,40 +39,62 @@ jobs:
   build-rust-wasm32:
     runs-on: ubuntu-latest
     steps:
+
+    #code taken from https://github.com/deltasiege/godot-rapier-3d/blob/9c26657e074d2b09ec3e2323ceac3c2ddf8603a4/.github/workflows/jobs-build.yml
     - uses: actions/checkout@v4
-    - name: setup nightly toolchain
+    - uses: mymindstorm/setup-emsdk@v14
+      with:
+        version: 3.1.74
+        no-cache: true
+        actions-cache-folder: "emsdk-cache"
+
+    - name: Install Nightly
+      uses: dtolnay/rust-toolchain@nightly
+      with:
+        targets: wasm32-unknown-emscripten
+
+    - name: Install Nightly
       run: |
         rustup toolchain install nightly
         rustup component add rust-src --toolchain nightly
         rustup target add wasm32-unknown-emscripten --toolchain nightly
-    - name: setup emsdk
-      run: |
-        git clone https://github.com/emscripten-core/emsdk.git
-        cd emsdk
-        ./emsdk install 3.1.62
-        ./emsdk activate 3.1.62
-        source ./emsdk.sh
-    - name: Build
-      run: |
-        cd emsdk
-        source "emsdk_env.sh"
-        source ./emsdk.sh
-        cd ../
-        cd rust-lib
-        cargo +nightly build --features nothreads -Zbuild-std --target wasm32-unknown-emscripten --verbose
-    - name: Run tests
-      run: |
-        cd rust-lib
-        cargo test --verbose
+
+    - name: Verify Emscripten
+      run: emcc -v
+
+    - name: build rust
+      run: cargo +nightly build --features nothreads -Zbuild-std --target wasm32-unknown-emscripten --release
+      working-directory: ./rust-lib
+      env: 
+        RUSTFLAGS: -C link-args=-sSIDE_MODULE=2 -C target-feature=+bulk-memory,+mutable-globals -Zlink-native-libraries=no -Cllvm-args=-enable-emscripten-cxx-exceptions=0
+    # borrowed code end
     - name: upload rust-lib
       uses: actions/upload-artifact@v4
       with:
-        name: rust-lib
-        path: ./rust-lib/target/wasm32-unknown-emscripten/debug/rust_lib.wasm
+        name: rust-lib-wasm32
+        path: ./rust-lib/target/wasm32-unknown-emscripten/release/rust_lib.wasm
+    
+  build-rust-linux:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    - name: Build
+      run: cargo build --release
+      working-directory: ./rust-lib
+    - name: Run tests
+      run: cargo test
+      working-directory: ./rust-lib
+
+    - name: upload rust-lib
+      uses: actions/upload-artifact@v4
+      with:
+        name: rust-lib-linux-build-only
+        path: ./rust-lib/target/release/librust_lib.so
     
   export-web:
     name: Web Export
     needs: build-rust-wasm32
+    needs: build-rust-linux
     runs-on: ubuntu-22.04  # Use 22.04 with godot 4
     container:
       image: barichello/godot-ci:4.4.1
@@ -85,14 +107,22 @@ jobs:
         run: |
           mkdir -v -p ~/.local/share/godot/export_templates/
           mv /root/.local/share/godot/export_templates/${GODOT_VERSION}.stable ~/.local/share/godot/export_templates/${GODOT_VERSION}.stable
-      - name: Pull rust-lib
+      - name: Pull rust-lib-wasm32
         uses: actions/download-artifact@v4
         with:
-          name: rust-lib
-      - name: Move rust-lib
+          name: rust-lib-wasm32
+      - name: Move rust-lib-wasm32
         run: |
           mkdir -p ./rust-lib/target/wasm32-unknown-emscripten/release/
-          mv ./rust_lib.wasm ./rust-lib/target/wasm32-unknown-emscripten/release/rust_lib.
+          mv ./rust_lib.wasm ./rust-lib/target/wasm32-unknown-emscripten/release/rust_lib.wasm
+      - name: Pull rust-lib-linux-build-only
+        uses: actions/download-artifact@v4
+        with:
+          name: rust-lib-linux-build-only
+      - name: Move rust-lib-linux-build-only
+        run: |
+          mkdir -p ./rust-lib/target/release
+          mv ./librust_lib.so ./rust-lib/target/release/librust_lib.so
       - name: Web Build
         run: |
           mkdir -v -p build/web
