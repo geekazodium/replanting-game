@@ -14,4 +14,10 @@ signal player_out_of_energy();
 #region World Time Events
 signal day_end();
 #endregion
+
+#region Player New Day Choice Event
+signal day_end_player_choice_made(attempt_resurrect: bool);
+signal plant_resurrect_success(plant_name: StringName, plant_type: PlantType);
+#endregion
+
 @warning_ignore_restore("unused_signal")

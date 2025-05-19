@@ -1,10 +1,12 @@
-[gd_scene load_steps=9 format=3 uid="uid://06qiyuoewaqf"]
+[gd_scene load_steps=13 format=3 uid="uid://06qiyuoewaqf"]
 
 [ext_resource type="Script" uid="uid://cfiw1fsy6wj8u" path="res://scripts/player/physics/character_body_2d.gd" id="1_yfngl"]
 [ext_resource type="Script" uid="uid://bitp0isfs8yjp" path="res://scripts/player/physics/player_input_direction.gd" id="2_uc2qu"]
 [ext_resource type="Script" uid="uid://i5tkmrq2lg3q" path="res://scripts/player/physics/player_jump_input.gd" id="3_2n0x4"]
 [ext_resource type="Script" uid="uid://csg7k3vuihuqy" path="res://scripts/player/physics/bouyancy_area.gd" id="4_8k45x"]
 [ext_resource type="Script" uid="uid://bhqyk43hkdo7g" path="res://scripts/player/resources/player_energy.gd" id="5_uj7mf"]
+[ext_resource type="Script" uid="uid://b6bhrqejxcqbq" path="res://scripts/player/resources/player_plantable_types.gd" id="6_6unfe"]
+[ext_resource type="Script" uid="uid://curc35y3uemo8" path="res://scripts/player/resources/plant_type.gd" id="7_pxja8"]
 
 [sub_resource type="CapsuleShape2D" id="CapsuleShape2D_r1pwq"]
 
@@ -13,6 +15,18 @@ radius = 10.0
 height = 30.0
 
 [sub_resource type="CapsuleShape2D" id="CapsuleShape2D_42qaj"]
+
+[sub_resource type="Resource" id="Resource_mw25s"]
+script = ExtResource("7_pxja8")
+energy_cost = 0.5
+tileset_coords = Vector2i(3, 0)
+metadata/_custom_type_script = "uid://curc35y3uemo8"
+
+[sub_resource type="Resource" id="Resource_tcjrq"]
+script = ExtResource("7_pxja8")
+energy_cost = 2.0
+tileset_coords = Vector2i(4, 0)
+metadata/_custom_type_script = "uid://curc35y3uemo8"
 
 [node name="CharacterBody2D" type="CharacterBody2D" node_paths=PackedStringArray("lock_acceleration_timer")]
 collision_layer = 4
@@ -60,7 +74,15 @@ shape = SubResource("CapsuleShape2D_42qaj")
 [node name="PlayerEnergy" type="Node" parent="."]
 script = ExtResource("5_uj7mf")
 current_energy = 5.0
-energy_loss_rate = 0.05
 max_energy = 10.0
 energy_generation_rate = 0.01
 metadata/_custom_type_script = "uid://bhqyk43hkdo7g"
+
+[node name="PlantTypes" type="Node" parent="PlayerEnergy" node_paths=PackedStringArray("player_energy")]
+script = ExtResource("6_6unfe")
+plant_types = Dictionary[StringName, ExtResource("7_pxja8")]({
+&"Moss": SubResource("Resource_mw25s"),
+&"Tree": SubResource("Resource_tcjrq")
+})
+player_unlocked_types = Array[StringName]([&"Moss"])
+player_energy = NodePath("..")
