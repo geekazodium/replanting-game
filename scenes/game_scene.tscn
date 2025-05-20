@@ -56,5 +56,5 @@ metadata/_custom_type_script = "uid://c65rhuy20ubru"
 
 [node name="GameWorldTime" type="Node" parent="."]
 script = ExtResource("7_kk2rg")
-day_duration_seconds = 10.0
+day_duration_seconds = 60.0
 metadata/_custom_type_script = "uid://rjopr7uly4h2"
