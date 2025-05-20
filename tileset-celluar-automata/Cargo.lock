@@ -229,13 +229,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "2b15c43186be67a4fd63bee50d0303afffcef381492ebe2c5d87f324e1b8815c"
 
 [[package]]
-name = "rust-lib"
-version = "0.2.0"
-dependencies = [
- "godot",
-]
-
-[[package]]
 name = "syn"
 version = "2.0.101"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -244,6 +237,13 @@ dependencies = [
  "proc-macro2",
  "quote",
  "unicode-ident",
+]
+
+[[package]]
+name = "tileset-celluar-automata"
+version = "0.2.0"
+dependencies = [
+ "godot",
 ]
 
 [[package]]

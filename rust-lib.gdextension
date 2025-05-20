@@ -4,13 +4,13 @@ compatibility_minimum = 4.1
 reloadable = true
 
 [libraries]
-linux.debug.x86_64 =     "res://rust-lib/target/release/librust_lib.so"
-linux.release.x86_64 =   "res://rust-lib/target/release/librust_lib.so"
-windows.debug.x86_64 =   "res://rust-lib/target/release/rust_lib.dll"
-windows.release.x86_64 = "res://rust-lib/target/release/rust_lib.dll"
-macos.debug =            "res://rust-lib/target/release/librust_lib.dylib"
-macos.release =          "res://rust-lib/target/release/librust_lib.dylib"
-macos.debug.arm64 =      "res://rust-lib/target/release/librust_lib.dylib"
-macos.release.arm64 =    "res://rust-lib/target/release/librust_lib.dylib"
-web.debug.wasm32 =       "res://rust-lib/target/wasm32-unknown-emscripten/release/rust_lib.wasm"
-web.release.wasm32 =     "res://rust-lib/target/wasm32-unknown-emscripten/release/rust_lib.wasm"
+linux.debug.x86_64 =     "res://tileset-celluar-automata/target/release/libtileset_celluar_automata.so"
+linux.release.x86_64 =   "res://tileset-celluar-automata/target/release/libtileset_celluar_automata.so"
+windows.debug.x86_64 =   "res://tileset-celluar-automata/target/release/tileset_celluar_automata.dll"
+windows.release.x86_64 = "res://tileset-celluar-automata/target/release/tileset_celluar_automata.dll"
+macos.debug =            "res://tileset-celluar-automata/target/release/libtileset_celluar_automata.dylib"
+macos.release =          "res://tileset-celluar-automata/target/release/libtileset_celluar_automata.dylib"
+macos.debug.arm64 =      "res://tileset-celluar-automata/target/release/libtileset_celluar_automata.dylib"
+macos.release.arm64 =    "res://tileset-celluar-automata/target/release/libtileset_celluar_automata.dylib"
+web.debug.wasm32 =       "res://tileset-celluar-automata/target/wasm32-unknown-emscripten/release/tileset_celluar_automata.wasm"
+web.release.wasm32 =     "res://tileset-celluar-automata/target/wasm32-unknown-emscripten/release/tileset_celluar_automata.wasm"
