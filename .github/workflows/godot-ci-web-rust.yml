@@ -34,7 +34,7 @@ env:
   GODOT_VERSION: 4.4.1
   EXPORT_NAME: replanting-game
   PROJECT_PATH: ./
-  RUST_PATH: ./tileset-celluar-automata
+  RUST_PATH: tileset-celluar-automata
 
 jobs:
   build-rust-wasm32:
@@ -46,8 +46,10 @@ jobs:
     - uses: mymindstorm/setup-emsdk@v14
       with:
         version: 3.1.74
-        no-cache: true
         actions-cache-folder: "emsdk-cache"
+
+    - name: Verify Emscripten
+      run: emcc -v
 
     - name: Install Nightly
       uses: dtolnay/rust-toolchain@nightly
@@ -60,20 +62,17 @@ jobs:
         rustup component add rust-src --toolchain nightly
         rustup target add wasm32-unknown-emscripten --toolchain nightly
 
-    - name: Verify Emscripten
-      run: emcc -v
-
     - name: build rust
       run: cargo +nightly build --features nothreads -Zbuild-std --target wasm32-unknown-emscripten --release
-      working-directory: ${RUST_PATH}
+      working-directory: ${{env.RUST_PATH}}
       env: 
         RUSTFLAGS: -C link-args=-sSIDE_MODULE=2 -C target-feature=+bulk-memory,+mutable-globals -Zlink-native-libraries=no -Cllvm-args=-enable-emscripten-cxx-exceptions=0
     # borrowed code end
     - name: upload tileset-celluar-automata
       uses: actions/upload-artifact@v4
       with:
-        name: tileset-celluar-automata-wasm32
-        path: ${RUST_PATH}/target/wasm32-unknown-emscripten/release/tileset_celluar_automata.wasm
+        name: ${{env.RUST_PATH}}-wasm32
+        path: ${{env.RUST_PATH}}/target/wasm32-unknown-emscripten/release/tileset_celluar_automata.wasm
     
   build-rust-linux:
     runs-on: ubuntu-latest
@@ -81,16 +80,16 @@ jobs:
     - uses: actions/checkout@v4
     - name: Build
       run: cargo build --release
-      working-directory: ${RUST_PATH}
+      working-directory: ${{env.RUST_PATH}}
     - name: Run tests
       run: cargo test
-      working-directory: ${RUST_PATH}
+      working-directory: ${{env.RUST_PATH}}
 
     - name: upload tileset-celluar-automata
       uses: actions/upload-artifact@v4
       with:
-        name: tileset-celluar-automata-linux-build-only
-        path: ${RUST_PATH}/target/release/libtileset_celluar_automata.so
+        name: ${{env.RUST_PATH}}-linux-build-only
+        path: ${{env.RUST_PATH}}/target/release/libtileset_celluar_automata.so
     
   export-web:
     name: Web Export
@@ -110,19 +109,19 @@ jobs:
       - name: Pull tileset-celluar-automata-wasm32
         uses: actions/download-artifact@v4
         with:
-          name: tileset-celluar-automata-wasm32
-      - name: Move tileset-celluar-automata-wasm32
+          name: ${{env.RUST_PATH}}-wasm32
+      - name: Move ${{env.RUST_PATH}}-wasm32
         run: |
-          mkdir -p ${RUST_PATH}/target/wasm32-unknown-emscripten/release/
-          mv ./tileset_celluar_automata.wasm ${RUST_PATH}/target/wasm32-unknown-emscripten/release/tileset_celluar_automata.wasm
+          mkdir -p ${{env.RUST_PATH}}/target/wasm32-unknown-emscripten/release/
+          mv ./tileset_celluar_automata.wasm ${{env.RUST_PATH}}/target/wasm32-unknown-emscripten/release/tileset_celluar_automata.wasm
       - name: Pull tileset-celluar-automata-linux-build-only
         uses: actions/download-artifact@v4
         with:
-          name: tileset-celluar-automata-linux-build-only
-      - name: Move tileset-celluar-automata-linux-build-only
+          name: ${{env.RUST_PATH}}-linux-build-only
+      - name: Move ${{env.RUST_PATH}}-linux-build-only
         run: |
-          mkdir -p ${RUST_PATH}/target/release
-          mv ./libtileset_celluar_automata.so ${RUST_PATH}/target/release/libtileset_celluar_automata.so
+          mkdir -p ${{env.RUST_PATH}}/target/release
+          mv ./libtileset_celluar_automata.so ${{env.RUST_PATH}}/target/release/libtileset_celluar_automata.so
       - name: Web Build
         run: |
           mkdir -v -p build/web
